@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import moment from 'moment';
 import Breadcrumb from './Breadcrumb';
 import { Badge, Descriptions, Skeleton, Result, Button } from 'antd';
-import { ApiProduct } from "../../api/api-product";
-import { ApiOrder } from '../../api/api-order';
+import { apiProduct } from "../../api/api-product";
+import { apiOrder } from '../../api/api-order';
 import { Link, useParams } from 'react-router-dom';
 
 
@@ -17,9 +17,9 @@ export const Order = () => {
     useEffect(() => {
         (async () => {
             try {
-                const res = await ApiOrder.get(id);
+                const res = await apiOrder.get(id);
                 setOrder(res.data.fields);
-                const resProducts = await ApiProduct.getAll();
+                const resProducts = await apiProduct.getAll();
                 const products = resProducts.data;
                 const cart = JSON.parse(res.data.fields.items);
                 const updatedCartItems = cart.map(item => {

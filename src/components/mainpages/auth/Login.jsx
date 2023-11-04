@@ -2,8 +2,35 @@ import * as React from 'react';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input, Divider } from 'antd';
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { onLogin } from '../../../features/login/path-api';
+import Cookies from 'js-cookie';
+
 
 export const Login = () => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { isAuth, loading, key } = useSelector((state) => state.login);
+    const onFinish = (values) => {
+        dispatch(onLogin(values))
+    };
+
+    useEffect(() => {
+        const access_Token = Cookies.get('accessToken')
+        if (access_Token) {
+            navigate('/')
+        }
+    }, [isAuth])
+
+    // When key press enter button will submit form
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            onFinish()
+        }
+    }
+
     return (
         <section className="h-screen flex justify-center items-center">
             <div className="h-full">
@@ -25,15 +52,15 @@ export const Login = () => {
                             initialValues={{
                                 remember: true,
                             }}
-                        // onFinish={onFinish}
+                            onFinish={onFinish}
                         >
-                            <h1 className='text-center text-2xl pb-10  font-extrabold text-blue-600'>Welcome to My Children App</h1>
+                            <h1 className='text-center text-2xl pb-10  font-extrabold text-blue-600'>Chào mừng bạn đến với My Children</h1>
                             <Form.Item
                                 name="email"
                                 rules={[
                                     {
                                         required: true,
-                                        message: 'Please input your Email!',
+                                        message: 'Vui lòng nhập vào email!',
                                     },
                                 ]}
                             >
@@ -46,7 +73,7 @@ export const Login = () => {
                                 rules={[
                                     {
                                         required: true,
-                                        message: 'Please input your Password!',
+                                        message: 'Vui lòng nhập vào mật khẩu!',
                                     },
                                 ]}
                             >
@@ -58,19 +85,19 @@ export const Login = () => {
                             </Form.Item>
                             <div className='flex justify-between pb-5'>
                                 <Form.Item name="remember" valuePropName="checked" noStyle>
-                                    <Checkbox>Remember me</Checkbox>
+                                    <Checkbox>Ghi nhớ đăng nhập</Checkbox>
                                 </Form.Item>
 
                                 <a className="login-form-forgot text-blue-400" href="#">
-                                    Forgot password
+                                    Quên mật khẩu?
                                 </a>
                             </div>
 
                             <Form.Item>
-                                <Button type="primary" htmlType="submit" size='large' className="login-form-button bg-blue-600 w-full">
-                                    Log in
+                                <Button type="primary" loading={loading} htmlType="submit" size='large' className="login-form-button bg-blue-600 w-full">
+                                    Đăng nhập
                                 </Button>
-                                <Divider plain>You don't have an account? <Link to="/register" className='text-blue-400'>Register now!</Link></Divider>
+                                <Divider plain>Bạn chưa có tài khoản? <Link to="/register" className='text-blue-400'>Đăng ký ngay!</Link></Divider>
                             </Form.Item>
                         </Form>
                     </div>

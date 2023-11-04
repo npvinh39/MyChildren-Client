@@ -12,7 +12,7 @@ export const ProductsList = ({ title, products, loading }) => {
                 <div className="block xl:hidden">
                     <h2 className="text-xl font-semibold uppercase">{title}</h2>
                 </div>
-                <div className="product-list-category grid grid-cols-3 md:grid-cols-5 xl:ml-6 gap-1">
+                {/* <div className="product-list-category grid grid-cols-3 md:grid-cols-5 xl:ml-6 gap-1">
                     <span
                         className="text-xs xl:text-[13px] text-gray-600 font-bold uppercase bg-[#f2f2f2] rounded-md px-2 py-[6px]">
                         LEGO NINJAGO
@@ -33,7 +33,7 @@ export const ProductsList = ({ title, products, loading }) => {
                         className="text-xs xl:text-[13px] text-gray-600 font-bold uppercase bg-[#f2f2f2] rounded-md px-2 py-[6px]">
                         LEGO FRIENDS
                     </span>
-                </div>
+                </div> */}
             </div>
 
             <div

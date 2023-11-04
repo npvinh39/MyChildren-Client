@@ -6,17 +6,16 @@ import { isMobile } from 'react-device-detect';
 import { Empty, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import { FaHome, FaCreditCard, FaTruck, FaCheckSquare, FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
-import { GlobalStateContext } from "../../GlobalState";
-import { ApiProduct } from "../../api/api-product";
-import { ApiProvince } from '../../api/api-province';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductsWithDescription } from '../../features/product/path-api';
+import { apiProvince } from '../../api/api-province';
 import { openPayment } from '../../api/paymentClient.ts';
 
 export const Checkout = () => {
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [loading, setLoading] = useState(true);
-    const state = React.useContext(GlobalStateContext);
-    const [cart, setCart] = state.cart;
-    const [products, setProducts] = state.products;
+    const [cart, setCart] = useState([]);
+    const dispatch = useDispatch();
+    const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
     const [quantity, setQuantity] = useState(0);
     const [timeStamp, setTimeStamp] = useState('');
     const [windowType, setWindowType] = useState(0);
@@ -59,18 +58,10 @@ export const Checkout = () => {
     }, []);
 
     // get all product
-    useEffect(() => {
-        const getProduct = async () => {
-            try {
-                const response = await ApiProduct.getAll();
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getProduct();
-    }, [setProducts]);
+    // useEffect(() => {
+    //     dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
+    // }, [dispatch, currentPage, pageSize, sort]);
+
 
 
     useEffect(() => {
@@ -174,7 +165,7 @@ export const Checkout = () => {
     useEffect(() => {
         const getProvince = async () => {
             try {
-                const response = await ApiProvince.getAllProvince();
+                const response = await apiProvince.getAllProvince();
                 setProvinces(response.data);
             } catch (error) {
                 console.log(error);
@@ -267,9 +258,9 @@ export const Checkout = () => {
                         <input type="hidden" name="invoiceNo" value={invoiceNo} />
                         <input type="hidden" name="goodsNm" value="Test Payment" />
                         <input type="hidden" name="payType" value="NO" />
-                        <input type="hidden" name="callBackUrl" value="https://challenge-mykingdom.pages.dev/callback" />
-                        <input type="hidden" name="notiUrl" value="https://challenge-mykingdom.pages.dev/callback" />
-                        <input type="hidden" name="reqDomain" value="https://challenge-mykingdom.pages.dev/" />
+                        <input type="hidden" name="callBackUrl" value="http://localhost:3000/callback" />
+                        <input type="hidden" name="notiUrl" value="http://localhost:3000/callback" />
+                        <input type="hidden" name="reqDomain" value="http://localhost:3000/" />
                         <input type="hidden" name="fee" value="0" />
                         <input type="hidden" name="description" value="testsystem" />
                         <input type="hidden" name="userLanguage" value="VN" />
@@ -575,7 +566,7 @@ export const Checkout = () => {
                             <button
                                 disabled={loading}
                                 onClick={() => { handlePayment() }}
-                                className="bg-[#df494a] hover:border border-[#df494a] text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
+                                className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
                                 thanh toán
                             </button>
                         </div>

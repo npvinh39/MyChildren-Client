@@ -7,19 +7,17 @@ import Breadcrumb from './Breadcrumb';
 import ProductImageSlider from './ProductImageSlider';
 import Rating from './Rating';
 import { ProductsSaleList } from './ProductsSaleList';
-import { ApiProduct } from '../../api/api-product';
-import { GlobalStateContext } from "../../GlobalState";
 import { message } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProduct } from '../../features/product/path-api';
 
 
 export const ProductDetail = ({ match }) => {
-    const state = React.useContext(GlobalStateContext);
-    const [products, setProducts] = state.products;
-    const [cart, setCart] = state.cart;
+    const [cart, setCart] = useState([]);
     const { id } = useParams();
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [product, setProduct] = useState(null);
-    const [images, setImages] = useState(null);
+    const dispatch = useDispatch();
+    const { products, product, images, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
 
     const location = useLocation();
     useEffect(() => {
@@ -28,18 +26,8 @@ export const ProductDetail = ({ match }) => {
 
     // get product by id
     useEffect(() => {
-        const getProduct = async () => {
-            const response = await ApiProduct.getById(id);
-            // console.log('response', response)
-            setProduct(response.data);
-            const images = response.data.images.map(image => ({
-                original: image.url,
-                thumbnail: image.url,
-            }));
-            setImages(images);
-        }
-        getProduct();
-    }, [id]);
+        dispatch(fetchProduct(id));
+    }, [id, dispatch]);
 
     // change title to product name
     useEffect(() => {
@@ -159,13 +147,16 @@ export const ProductDetail = ({ match }) => {
                         </div>
 
                         <div className="product-detail__info__price mt-2">
-                            <span className="product-detail__info__price__current text-2xl text-red-500 font-bold">{VND.format(Number(product.price))}</span>
-                            <span className="product-detail__info__price__old text-sm text-gray-500 ml-2 line-through">{VND.format(Number(product.price_discount))}</span>
+                            <span className="product-detail__info__price__current text-2xl text-red-500 font-bold">{VND.format(Number(product.price_discount))}</span>
+                            {
+                                product.price_discount !== product.price &&
+                                <span className="product-detail__info__price__old text-sm text-gray-500 line-through ml-2">{VND.format(Number(product.price))}</span>
+                            }
                         </div>
 
                         <div className="product-detail__info__sale my-2">
                             <p className="text-[14px] text-red-500">
-                                Giảm thêm 5% khi là thành viên.
+                                Giảm đến 10% khi tham gia hội viên
                             </p>
                         </div>
 
@@ -214,12 +205,12 @@ export const ProductDetail = ({ match }) => {
                         <div className="product-detail__info__add-to-cart mt-2 flex justify-between items-center gap-2 w-full xl:w-[80%]">
                             <Link to={'/checkout'}
                                 onClick={() => addToCart(product)}
-                                className="bg-[#df494a] border border-[#df494a] text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
+                                className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
                                 Mua Ngay
                             </Link>
                             <button
                                 onClick={() => addToCart(product)}
-                                className="bg-[#df494a] border border-[#df494a] text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
+                                className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
                                 Thêm vào giỏ hàng
                             </button>
                             <RiHeartLine
@@ -320,37 +311,9 @@ export const ProductDetail = ({ match }) => {
                             <h3 className="text-lg font-semibold">Mô tả sản phẩm</h3>
                         </div>
                         <div className="product-detail__description__content mt-2">
-                            <h3 className="text-xl font-semibold capitalize">{product.name}</h3>
+                            <h5 className="text-lg font-semibold capitalize">{product.name}</h5>
                             <div className="text-sm text-gray-500 text-justify">
-                                Không cần tìm kiếm "chú rồng huyền thoại" đâu xa, bé có thể gắn kết cùng rồng mỗi ngày. Đây chính là item cực chất phù hợp với sở thích gaming và thiết kế độc đáo giúp bé trở nên thời trang hơn.
-                                <br />
-                                <br />
-
-                                Trọng lượng: 450g
-                                <br />
-                                Kích thước: 13x29x40 (cm)
-                                <br />
-                                - Chủ đề: Siêu rồng huyền thoại
-                                <br />
-                                Dòng balo đa năng Easy Go Dragon Gaming với những đặc điểm nổi bật như:
-                                <br />
-                                - Thiết kế độc quyền với hình ảnh trò chơi chú rồng hung hãn thét ra lửa và hiệp sĩ dũng cảm đang chiến đấu với nhau.
-                                <br />
-                                - Trọng lượng siêu nhẹ đi cùng chất liệu vải trượt nước, có thể dễ dàng vệ sinh.
-                                <br />
-                                - Kiểu dáng ba lô nhỏ gọn, thời trang với màu sắc năng động.
-                                <br />
-                                - Các ngăn chứa rộng rãi và phân bổ hợp lí, đựng vừa kích thước khổ A4. Có 2 ngăn hông có khóa kéo tiện dụng, dùng đựng bình nước hay các vật dụng nhỏ xinh của bé.
-                                <br />
-                                - Ba lô có phần bảng tên ở bên trong để bé "đánh dấu chủ quyền" balo của mình.
-                                <br />
-                                - Khóa kéo HKK chất lượng.
-                                <br />
-                                - Đây là một mẫu sản phẩm của Clever Hippo hiện đang được bán tại shop Clever Collection.
-                                <br />
-                                <br />
-
-                                Sản phẩm thích hợp cho bé từ 6 tuổi trở lên.
+                                <div dangerouslySetInnerHTML={{ __html: product.content }}></div>
                             </div>
                         </div>
                     </div>
@@ -364,84 +327,48 @@ export const ProductDetail = ({ match }) => {
                                     <tr>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='font-semibold text-[13px] text-gray-500'>
-                                                Chủ đề
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                EASY GO
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Xuất xứ
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                Việt Nam
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Mã VT
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                BG0113/BLACK
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Tuổi
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                6 tuổi trở lên
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
                                                 Thương hiệu
                                             </p>
                                         </td>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='text-[15px]  text-gray-700'>
-                                                CLEVERHIPPO
+                                                {product.description.brand}
                                             </p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='font-semibold text-[13px] text-gray-500'>
-                                                Xuất xứ thương hiệu
+                                                Sản xuất tại
                                             </p>
                                         </td>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='text-[15px]  text-gray-700'>
-                                                Việt Nam
+                                                {product.description.made_in}
                                             </p>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='font-semibold text-[13px] text-gray-500'>
-                                                Giới tính
+                                                Nguồn gốc
                                             </p>
                                         </td>
                                         <td className='border px-4 py-4 text-sm w-1/2'>
                                             <p className='text-[15px]  text-gray-700'>
-                                                UNISEX
+                                                {product.description.origin}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td className='border px-4 py-4 text-sm w-1/2'>
+                                            <p className='font-semibold text-[13px] text-gray-500'>
+                                                Độ tuổi sử dụng
+                                            </p>
+                                        </td>
+                                        <td className='border px-4 py-4 text-sm w-1/2'>
+                                            <p className='text-[15px]  text-gray-700'>
+                                                {product.description.age_of_use}
                                             </p>
                                         </td>
                                     </tr>

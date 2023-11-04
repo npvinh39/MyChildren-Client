@@ -24,7 +24,7 @@ export const SearchOrders = () => {
                         onChange={e => setOrders(e.target.value)}
                     />
                     <Link to={`/order/${orders}`}>
-                        <Button type="primary" danger className="w-full text-xl h-12">Tiếp tục</Button>
+                        <Button type="primary" className="w-full text-xl h-12 bg-blue-500">Tiếp tục</Button>
                     </Link>
                 </Card>
             </div>

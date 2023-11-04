@@ -27,7 +27,7 @@ export const Product = (product) => {
                     </span>
                     <div className="group relative">
                         <img src={product?.images[0].url} alt={product.name} className="product-image object-cover w-full block group-hover:hidden" />
-                        <img src={product?.images[1].url} alt={product.name} className="product-image object-cover w-full hidden group-hover:block" />
+                        <img src={product?.images.length >= 2 ? product?.images[1].url : product?.images[0].url} alt={product.name} className="product-image object-cover w-full hidden group-hover:block" />
                     </div>
                     <div className="product-info px-3 py-1">
                         <div className="product-name h-11">
@@ -58,8 +58,10 @@ export const Product = (product) => {
                             </span>
                         </div>
                         <div className="product-price w-full flex justify-between items-center pt-2">
-                            <span className="text-[13px] font-bold text-red-400">{VND.format(Number(product.price))}</span>
-                            <span className="text-[13px] font-semibold text-gray-700 line-through">{VND.format(Number(product.price_discount))}</span>
+                            <span className="text-[13px] font-bold text-red-400">{VND.format(Number(product.price_discount))}</span>
+                            {product.price_discount !== product.price &&
+                                <span className="text-[13px] font-semibold text-gray-700 line-through">{VND.format(Number(product.price))}</span>
+                            }
                         </div>
                     </div>
                 </Link>

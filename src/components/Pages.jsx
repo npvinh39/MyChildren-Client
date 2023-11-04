@@ -9,19 +9,18 @@ import { CallBack } from "./mainpages/CallBack";
 import { SearchOrders } from "./mainpages/SearchOrders";
 import { Order } from "./mainpages/Order";
 import { Login } from "./mainpages/auth/Login";
+import { Register } from "./mainpages/auth/Register";
 import { NotFound } from "./NotFound";
 
 const Pages = () => {
 
-    // const location = useLocation();
-    // const isPage = location.pathname === '/login' || location.pathname === '/register';
 
     return (
         <>
-            {/* {isPage ? null : <Header />} */}
             <Routes>
                 <Route path="/" element={<MainPages />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/category" element={<CategoryPage />} />
@@ -32,7 +31,6 @@ const Pages = () => {
                 <Route path="/order/:id" element={<Order />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
-            {/* {isPage ? null : <Footer />} */}
         </>
     );
 }

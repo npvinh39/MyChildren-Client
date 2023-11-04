@@ -1,21 +1,43 @@
 import { axiosClient } from "./client-axios";
 
-// const domain = "http://localhost:5000";
-const domain = "https://my-children-server.vercel.app";
+export const apiProduct = {
+    getAll: (params) => {
+        const url = `/products`;
+        return axiosClient.get(url, params);
+    },
 
-export const ApiProduct = {
-    getAll: () => {
-        const url = `${domain}/api/products`;
+    getAllWithDescription: (params) => {
+        const url = `/products/with-description?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}`;
+        return axiosClient.get(url, params);
+    },
+
+    get: (id) => {
+        const url = `/products/${id}`;
         return axiosClient.get(url);
     },
 
-    getById: (id) => {
-        const url = `${domain}/api/products/${id}`;
+    getByCategory: (params) => {
+        const url = `/products/category/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}`;
         return axiosClient.get(url);
     },
 
-    getByCategory: (id) => {
-        const url = `${domain}/api/products/category/${id}`;
+    getDescriptionByProductId: (id) => {
+        const url = `/products/description/${id}`;
         return axiosClient.get(url);
+    },
+
+    create: (params) => {
+        const url = `/products/add`;
+        return axiosClient.post(url, params);
+    },
+
+    update: (params) => {
+        const url = `/products/edit/${params.id}`;
+        return axiosClient.patch(url, params);
+    },
+
+    delete: (id) => {
+        const url = `/products/delete/${id}`;
+        return axiosClient.delete(url);
     },
 };

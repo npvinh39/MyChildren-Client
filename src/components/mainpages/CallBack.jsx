@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Result, Spin, message } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
-import { ApiOrder } from '../../api/api-order';
+import { apiOrder } from '../../api/api-order';
 import queryString from 'query-string';
-import { GlobalStateContext } from "../../GlobalState";
 
 const infoOrder = JSON.parse(localStorage.getItem('infoOrder'));
 export const CallBack = () => {
-    const state = React.useContext(GlobalStateContext);
-    const [cart, setCart] = state.cart;
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = queryString.parse(location.search);
@@ -37,11 +34,11 @@ export const CallBack = () => {
                 };
                 try {
                     setLoading(true);
-                    await ApiOrder.add(order);
+                    await apiOrder.add(order);
                     setLoading(false);
                     localStorage.removeItem('cart');
                     localStorage.removeItem('infoOrder');
-                    setCart([]);
+
                 } catch (error) {
                     console.log('error', error)
                     setLoading(false);

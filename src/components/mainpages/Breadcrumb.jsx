@@ -22,6 +22,9 @@ const Breadcrumb = () => {
                     const isLast = index === paths.length - 1;
                     let slug;
                     switch (path) {
+                        case 'all':
+                            slug = 'Tất cả';
+                            break;
                         case 'products':
                             slug = 'Sản phẩm';
                             break;

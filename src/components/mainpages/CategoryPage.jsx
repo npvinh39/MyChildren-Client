@@ -2,68 +2,31 @@ import React, { useState, useEffect } from 'react';
 import Breadcrumb from './Breadcrumb';
 import { Product } from "./Product";
 import CategoryTree from './CategoryTree';
-import Paginations from './Pagination';
-import { Empty, Skeleton } from 'antd';
+import { Empty, Pagination, Skeleton } from 'antd';
 import { useParams } from 'react-router-dom';
-import { GlobalStateContext } from "../../GlobalState";
-import { ApiProduct } from '../../api/api-product';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductsByCategory } from '../../features/product/path-api';
 
 
 export const CategoryPage = () => {
-    const state = React.useContext(GlobalStateContext);
-    const [products, setProducts] = state.products;
-    const [loading, setLoading] = useState(true);
+    const [cart, setCart] = useState([]);
+    const dispatch = useDispatch();
+    const { products, productsByCategory, loading, currentPageCategories, pageSizeCategories, totalPagesCategories, sort } = useSelector(state => state.product);
+    console.log(pageSizeCategories)
     const { id } = useParams();
 
     useEffect(() => {
-        const pageTitle = 'Trang danh mục';
-        document.title = pageTitle;
-
-        setLoading(true);
-        const getProducts = async () => {
-            try {
-                const response = await ApiProduct.getByCategory(id);
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log('Failed to fetch product list: ', error);
-            }
-        };
-
-        const getAllProducts = async () => {
-            try {
-                const response = await ApiProduct.getAll();
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log('Failed to fetch product list: ', error);
-            }
-        };
-
         if (id) {
-            getProducts();
+            dispatch(fetchProductsByCategory({ id, currentPage: currentPageCategories, pageSize: pageSizeCategories, sort }));
         }
-        else {
-            getAllProducts();
-        }
+    }, [dispatch, id]);
 
-        return () => {
-            document.title = "MYKINGDOM Vương Quốc Đồ Chơi | Đồ Chơi Giáo Dục Hàng Đầu Việt Nam";
-        };
-    }, [id]);
+    const handlePageChange = (page, pageSize) => {
+        dispatch(fetchProductsByCategory({ currentPage: page, pageSize }));
+    };
 
-
-    //Pagination
-    const itemsPerPage = 8;
-    const [currentPage, setCurrentPage] = useState(1);
-
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-
-    const currentProducts = products.slice(startIndex, endIndex);
-
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
+    const onShowSizeChange = (current, pageSizeCategories) => {
+        console.log(current, pageSizeCategories);
     };
 
 
@@ -79,13 +42,13 @@ export const CategoryPage = () => {
                 <div className="w-full md:w-8/12 lg:w-9/12 xl:w-4/5 grid">
                     {
                         loading ? <Skeleton active /> :
-                            currentProducts.length === 0 ? <Empty /> : (
+                            productsByCategory.length === 0 ? <Empty description='Không tìm thấy sản phẩm nào' /> : (
 
                                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                                     {
-                                        currentProducts.map((product) => (
+                                        productsByCategory.map((product) => (
                                             <Product
-                                                key={product.id}
+                                                key={product._id}
                                                 {...product}
                                             />
                                         ))
@@ -94,21 +57,19 @@ export const CategoryPage = () => {
                             )
                     }
                     {
-                        loading ? '' :
-
-                            currentProducts.length === 0 ? '' :
-                                <div div className="flex justify-between items-end">
-                                    <div
-                                        className="text-center text-sm text-gray-500">
-                                        Hiển thị {startIndex + 1} - {endIndex > products.length ? products.length : endIndex} trên tổng số {products.length} sản phẩm
-                                    </div>
-                                    <Paginations
-                                        totalItems={products.length}
-                                        onPageChange={handlePageChange}
-                                        itemsPerPage={itemsPerPage}
-                                    />
-                                </div>
-
+                        productsByCategory.length > 0 && (
+                            <div className="mt-6">
+                                <Pagination
+                                    className='mt-5 flex justify-center'
+                                    current={currentPageCategories}
+                                    pageSize={pageSizeCategories}
+                                    total={totalPagesCategories * pageSizeCategories}
+                                    onChange={handlePageChange}
+                                    showSizeChanger
+                                    onShowSizeChange={onShowSizeChange}
+                                />
+                            </div>
+                        )
                     }
                 </div>
             </div>

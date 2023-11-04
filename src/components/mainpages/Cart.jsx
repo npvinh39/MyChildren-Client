@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Breadcrumb from './Breadcrumb'
 import { Link } from 'react-router-dom';
 import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
-import { GlobalStateContext } from "../../GlobalState";
-import { ApiProduct } from "../../api/api-product";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductsWithDescription } from '../../features/product/path-api';
 
 
 export const Cart = () => {
 
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [loading, setLoading] = useState(true);
-    const state = React.useContext(GlobalStateContext);
-    const [cart, setCart] = state.cart;
-    const [products, setProducts] = state.products;
+    const [cart, setCart] = useState([]);
+    const dispatch = useDispatch();
+    const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
 
     useEffect(() => {
         const pageTitle = 'THÔNG TIN ĐƠN HÀNG';
@@ -24,17 +23,8 @@ export const Cart = () => {
 
     // get all product
     useEffect(() => {
-        const getProduct = async () => {
-            try {
-                const response = await ApiProduct.getAll();
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getProduct();
-    }, []);
+        dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
+    }, [dispatch, currentPage, pageSize, sort]);
 
 
     useEffect(() => {
@@ -167,7 +157,7 @@ export const Cart = () => {
                         }
                     </div>
                     <Link to='/'
-                        className="hover:bg-[#df494a] hover:border hover:border-[#df494a] text-center hover:text-white font-bold text-[13px] capitalize block w-full lg:w-[30%] my-8 py-1 bg-white text-gray-600 border border-gray-600 transition-colors duration-300 ease-in-out">
+                        className="hover:bg-blue-500 hover:border hover:border-blue-500 text-center hover:text-white font-bold text-[13px] capitalize block w-full lg:w-[30%] my-8 py-1 bg-white text-gray-600 border border-gray-600 transition-colors duration-300 ease-in-out">
                         Tiếp tục mua sắm
                     </Link>
 
@@ -199,7 +189,7 @@ export const Cart = () => {
                         <span className='text-xl font-bold'>{VND.format(getTotal())}</span>
                     </div>
                     <Link to='/checkout'
-                        className="bg-[#df494a] hover:border border-[#df494a] text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
+                        className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
                         Tiến hành thanh toán
                     </Link>
                 </div>

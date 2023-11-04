@@ -1,18 +1,32 @@
 import './App.css';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { Header, Footer } from './components';
 import Pages from './components/Pages';
 
 function App() {
-    const isPage = window.location.pathname === '/login' || window.location.pathname === '/register';
     return (
         <Router>
-            <div className="App">
-                {isPage ? null : <Header />}
-                <Pages />
-                {isPage ? null : <Footer />}
-            </div>
+            <MainPages />
         </Router>
+    );
+}
+
+const MainPages = () => {
+    const location = useLocation();
+    const isPage = location.pathname === '/login' || location.pathname === '/register';
+    if (isPage) {
+        return (
+            <div className="App">
+                <Pages />
+            </div>
+        );
+    }
+    return (
+        <div className="App">
+            <Header />
+            <Pages />
+            <Footer />
+        </div>
     );
 }
 

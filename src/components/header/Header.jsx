@@ -1,37 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Empty, Spin } from 'antd';
-import { RiPhoneFill, RiMapPinFill, RiSearchLine, RiMapPinUserFill, RiVipCrownLine, RiShoppingCart2Line, RiCloseLine, RiMenuFill } from "react-icons/ri";
-import { Link } from 'react-router-dom';
-import { GlobalStateContext } from "../../GlobalState";
-import { ApiProduct } from "../../api/api-product";
+import { Drawer, Empty, Spin, Dropdown, message, Modal } from 'antd';
+import {
+    UserOutlined,
+    LogoutOutlined,
+} from '@ant-design/icons';
+import { RiPhoneFill, RiSearchLine, RiUserLine, RiVipCrownLine, RiShoppingCart2Line, RiCloseLine, RiMenuFill } from "react-icons/ri";
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { onLogin, onLogout } from '../../features/login/path-api';
+import { fetchProductsWithDescription } from '../../features/product/path-api';
+import { fetchProfile } from '../../features/user/path-api';
+import { jwtDecode } from "jwt-decode";
+import Cookies from 'js-cookie';
 
 export const Header = () => {
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [loading, setLoading] = useState(true);
-    const state = React.useContext(GlobalStateContext);
-    const [cart, setCart] = state.cart;
-    const [products, setProducts] = state.products;
+    const [cart, setCart] = useState([]);
+    const dispatch = useDispatch();
+    const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { profile } = useSelector(state => state.user);
+    const { isAuth } = useSelector(state => state.login);
+    const onFinish = (values) => {
+        dispatch(onLogin(values))
+    };
 
-    // get all product
+    // get id user from access token cookies
+    const accessToken = Cookies.get('accessToken');
+    let decode = '';
+    let id = '';
+    if (accessToken) {
+        decode = jwtDecode(accessToken);
+        id = decode.id;
+    }
+
+    // get profile user
     useEffect(() => {
-        const getProduct = async () => {
-            try {
-                const response = await ApiProduct.getAll();
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getProduct();
-
-        // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCart(JSON.parse(savedCart));
+        if (id) {
+            dispatch(fetchProfile(id));
         }
+    }, [dispatch, id]);
 
+
+    useEffect(() => {
+        if (!products.length) {
+            dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
+        }
+    }, [dispatch, currentPage, pageSize]);
+
+    useEffect(() => {
+        // check if isAuth is true then get cart from profile user else get cart from local storage
+        const savedCart = JSON.parse(localStorage.getItem('cart'));
+        if (isAuth) {
+            // save cart to profile user
+            setCart(profile?.cart.products);
+        } else {
+            setCart(savedCart || []);
+        }
     }, []);
+
+    // Modal logout
+    const navigate = useNavigate();
+    const [modalText, setModalText] = useState('Bạn có chắc chắn muốn đăng xuất?');
+    const [openModalLogOut, setOpenModalLogOut] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    const showModal = () => {
+        setOpenModalLogOut(true);
+    };
+    const handleOk = async () => {
+        setModalText('Đang đăng xuất...');
+        setConfirmLoading(true);
+        await dispatch(onLogout());
+        navigate('/');
+        setOpenModalLogOut(false);
+        setConfirmLoading(false);
+        setModalText('Bạn có chắc chắn muốn đăng xuất?');
+    };
+    const handleCancel = () => {
+        setOpenModalLogOut(false);
+    };
 
     // on click close modal search
     const [isSearch, setIsSearch] = useState(false);
@@ -51,7 +97,7 @@ export const Header = () => {
     // get quantity of cart
     const getQuantity = () => {
         let quantity = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             quantity += item.quantity;
         });
         return quantity;
@@ -60,8 +106,8 @@ export const Header = () => {
     // get all product of cart
     const getProduct = () => {
         let product = [];
-        cart.forEach(item => {
-            products.forEach(productItem => {
+        cart?.forEach(item => {
+            products?.forEach(productItem => {
                 if (item._id === productItem._id) {
                     product.push(productItem);
                 }
@@ -74,7 +120,7 @@ export const Header = () => {
     // get total price of cart
     const getTotal = () => {
         let total = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             products.forEach(productItem => {
                 if (item._id === productItem._id) {
                     total += Number(productItem.price_discount) * item.quantity;
@@ -87,7 +133,7 @@ export const Header = () => {
     // get quantity of product
     const getQuantityOfProduct = (id) => {
         let quantity = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             if (item._id === id) {
                 quantity = item.quantity;
             }
@@ -103,7 +149,7 @@ export const Header = () => {
         const value = e.target.value.toLowerCase();
         setSearchValue(value);
         const searchResult = products.filter(product => {
-            return product.fields.product_name.toLowerCase().includes(searchValue);
+            return product.name.toLowerCase().includes(searchValue);
         });
         setSearch(searchResult);
     };
@@ -154,11 +200,18 @@ export const Header = () => {
                             </a>
                         </li>
                         <li className="">
-                            <a className="text-sm text-white hover:text-red-500 font-bold transition-all flex items-center h-6 hidden sm:flex" href="/">
-                                <span className="text-base pr-1">
-                                    <RiMapPinFill />
-                                </span>
-                                Hệ thống 246 cửa hàng mykingdom
+                            <a className="text-sm text-white hover:text-gray-200 font-bold transition-all flex items-center h-6 hidden sm:flex" href="/">
+                                {
+                                    isAuth ? (
+                                        <span className="text-base pr-1">
+                                            Xin chào, {profile?.last_name} {profile?.first_name}
+                                        </span>
+                                    ) : (
+                                        <span className="text-base pr-1">
+                                            Hàng chuẩn - Giá tốt - Giao nhanh
+                                        </span>
+                                    )
+                                }
                             </a>
                         </li>
                     </ul>
@@ -171,56 +224,56 @@ export const Header = () => {
                             <RiMenuFill />
                         </div>
                         <Drawer title="Menu" placement="right" onClose={onClose} open={open}>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Hàng mới
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Sản phẩm
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Giới tính
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Độ tuổi
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Thương hiệu
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Khuyến mãi
                                 </p>
                             </Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Chiến dịch
                                 </p>
                                 nổi bật</Link>
-                            <Link to="/category">
+                            <Link to="/category/all">
                                 <p className='py-1'>
                                     Ưu đãi
                                 </p>
                                 thành viên</Link>
-                            <Link to="/category">
+                            <Link to="/orders">
                                 <p className='py-1'>
-                                    Cẩm nang
+                                    Tra cứu
                                 </p>
                             </Link>
                         </Drawer>
                         <div className="logo">
                             <Link to="/">
                                 <img className="h-[60px] hidden xl:block"
-                                    src="https://u6wdnj9wggobj.vcdn.cloud/media/logo/stores/1/logo-254x76.png"
+                                    src="https://res.cloudinary.com/npvinh/image/upload/v1698772003/MyChildren/logo-MyChildren_ctwqry.png"
                                     alt="logo" />
                                 <img className="h-[40px] block xl:hidden mx-5"
                                     src="https://u6wdnj9wggobj.vcdn.cloud/media/favicon/stores/1/mkd-logo-mobile_1.png"
@@ -235,7 +288,7 @@ export const Header = () => {
                                     className="inline w-4/5 pl-4 text-sm flex-1 focus:outline-none"
                                     placeholder="Tìm kiếm sản phẩm..." />
                                 <button type="submit" className="w-14 md:w-20 xl:w-[100px] bg-[#f7f9fa]">
-                                    <span className="font-bold text-xl text-red-500">
+                                    <span className="font-bold text-xl text-blue-500">
                                         <RiSearchLine className='w-full' />
                                     </span>
                                 </button>
@@ -260,13 +313,13 @@ export const Header = () => {
                                                 <div className="max-h-[50vh] w-full overflow-y-auto">
                                                     {
                                                         search.length === 0 ? (
-                                                            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                                            <Empty description='Không tìm thấy sản phẩm' image={Empty.PRESENTED_IMAGE_SIMPLE} />
                                                         ) : (
                                                             search.map((product, index) => (
                                                                 <Link
                                                                     key={index}
                                                                     onClick={closeModalSearch}
-                                                                    to={`/products/${product.id}`}
+                                                                    to={`/products/${product._id}`}
                                                                     className="flex justify-between items-center gap-3 p-3 border-b-[1px] border-gray-300">
                                                                     <img
                                                                         className='w-[68px] h-[68px] object-cover'
@@ -277,7 +330,7 @@ export const Header = () => {
                                                                         <div className="font-semibold text-[13px]">
                                                                             <span>{product.name}</span>
                                                                             <div className="text-sm text-red-600 font-normal">
-                                                                                <span>{VND.format(Number(product.fields.price_discount))}</span>
+                                                                                <span>{VND.format(Number(product.price_discount))}</span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -293,22 +346,131 @@ export const Header = () => {
                             </form>
                         </div>
 
-                        <div className="flex justify-end xl:justify-between xl:w-[420px] font-medium text-sm mr-2 lg:mr-0 xl:pr-16">
-                            <Link to="/orders" className="vip-member flex items-center cursor-pointer hidden xl:flex">
+                        <div className="flex justify-end xl:justify-around xl:w-[420px] font-medium text-sm mr-2 lg:mr-0">
+                            {/* <Link to="/orders" className="vip-member flex items-center cursor-pointer hidden xl:flex">
                                 <span className="text-3xl pr-1">
                                     <RiVipCrownLine />
                                 </span>
                                 <span className='uppercase'>Tra cứu</span>
-                            </Link>
+                            </Link> */}
 
-                            <div className="user flex items-center cursor-pointer hidden xl:flex">
-                                <span className="text-3xl pr-1">
-                                    <RiMapPinUserFill />
-                                </span>
-                                <span className='uppercase'>Tài Khoản</span>
-                            </div>
+                            {
+                                isAuth ? (
+                                    <div className="user flex items-center flex-col cursor-pointer hidden xl:flex">
+                                        <Dropdown
+                                            menu={{
+                                                items: [
+                                                    {
+                                                        key: '1',
+                                                        label: 'Thông tin tài khoản',
+                                                        icon: <UserOutlined />,
+                                                        onClick: () => {
+                                                            message.info('Thông tin tài khoản');
+                                                        },
+                                                    },
+                                                    {
+                                                        key: '2',
+                                                        label: 'Đăng xuất',
+                                                        icon: <LogoutOutlined />,
+                                                        onClick: () => {
+                                                            showModal();
+                                                        },
+                                                    },
+                                                ],
+                                            }}
+                                            placement="bottomRight"
+                                        >
+                                            <div className='flex items-center flex-col'>
+                                                <span className="text-3xl pr-1">
+                                                    <RiUserLine />
+                                                </span>
+                                                <span className='uppercase'>Tài Khoản</span>
+                                            </div>
+                                        </Dropdown>
+                                        <Modal
+                                            title="Bạn chắc chứ"
+                                            open={openModalLogOut}
+                                            onOk={handleOk}
+                                            confirmLoading={confirmLoading}
+                                            onCancel={handleCancel}
+                                            okText="Đăng xuất"
+                                            okType='danger'
+                                            cancelText="Hủy"
+                                        >
+                                            <p>{modalText}</p>
+                                        </Modal>
+                                    </div>
+                                ) : (
+                                    <Link to='/login' className="user flex items-center flex-col cursor-pointer hidden xl:flex">
+                                        <span className="text-3xl pr-1">
+                                            <RiUserLine />
+                                        </span>
+                                        <span className='uppercase'>Đăng Nhập</span>
 
-                            <div className="cart group flex items-center badge cursor-pointer relative transition-all" data-count={getQuantity()}>
+                                    </Link>
+
+                                )
+                            }
+                            {/* <Modal title="" width={600} open={isModalOpenLogin} footer={null} onOk={handleOkLogin} onCancel={handleCancelLogin}>
+                                <div className="">
+                                    <Form
+                                        size='large'
+                                        name="normal_login"
+                                        className="w-full px-10"
+                                        initialValues={{
+                                            remember: true,
+                                        }}
+                                        onFinish={onFinish}
+                                    >
+                                        <h1 className='text-center text-2xl pb-10  font-extrabold text-blue-600'>Chào mừng bạn đến với My Children</h1>
+                                        <Form.Item
+                                            name="email"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: 'Vui lòng nhập vào email!',
+                                                },
+                                            ]}
+                                        >
+                                            <Input prefix={<UserOutlined className="site-form-item-icon" />}
+                                                placeholder="Email"
+                                            />
+                                        </Form.Item>
+                                        <Form.Item
+                                            name="password"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: 'Vui lòng nhập vào mật khẩu!',
+                                                },
+                                            ]}
+                                        >
+                                            <Input.Password
+                                                prefix={<LockOutlined className="site-form-item-icon" />}
+                                                type="password"
+                                                placeholder="Password"
+                                            />
+                                        </Form.Item>
+                                        <div className='flex justify-between pb-5'>
+                                            <Form.Item name="remember" valuePropName="checked" noStyle>
+                                                <Checkbox>Ghi nhớ đăng nhập</Checkbox>
+                                            </Form.Item>
+
+                                            <a className="login-form-forgot text-blue-400" href="#">
+                                                Quên mật khẩu?
+                                            </a>
+                                        </div>
+
+                                        <Form.Item>
+                                            <Button type="primary" loading={loading} htmlType="submit" size='large' className="login-form-button bg-blue-600 w-full">
+                                                Đăng nhập
+                                            </Button>
+                                            <Divider plain>Bạn chưa có tài khoản? <Link to="/register" className='text-blue-400'>Đăng ký ngay!</Link></Divider>
+                                        </Form.Item>
+                                    </Form>
+                                </div>
+                            </Modal> */}
+                            <div className="cart group flex flex-col items-center badge cursor-pointer relative transition-all" data-count={getQuantity()}>
                                 <Link to="/cart" className="text-3xl pr-1">
                                     <RiShoppingCart2Line />
                                 </Link>
@@ -321,9 +483,9 @@ export const Header = () => {
                                                     <Spin />
                                                 </div>
                                             ) : (
-                                                cart.length === 0 ?
+                                                cart?.length === 0 ?
                                                     (
-                                                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                                        <Empty description='Giỏ hàng rỗng' image={Empty.PRESENTED_IMAGE_SIMPLE} />
                                                     )
                                                     :
                                                     productCart.map((product, index) => (
@@ -383,47 +545,47 @@ export const Header = () => {
                 <div className="container mx-auto 2xl:px-20 h-full">
                     <ul className="flex justify-between items-center h-full uppercase">
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Hàng Mới
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Sản Phẩm
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Giới Tính
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Độ Tuổi
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Thương Hiệu
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Khuyến Mãi
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Chiến Dịch Nổi Bật
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Ưu Đãi Thành Viên
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Cẩm Nang
                             </Link>
                         </li>

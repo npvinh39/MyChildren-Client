@@ -3,28 +3,13 @@ import Banner from "./Banner";
 import { ProductsList } from "./ProductsList";
 import { ProductsSaleList } from "./ProductsSaleList";
 import { CategoryList } from "./CategoryList";
-import { ApiProduct } from "../../api/api-product";
+import { apiProduct } from "../../api/api-product";
 import { Skeleton } from 'antd';
-import { GlobalStateContext } from "../../GlobalState";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProductsWithDescription } from '../../features/product/path-api';
 
 export const MainPages = () => {
-    const state = React.useContext(GlobalStateContext);
-    const [loading, setLoading] = useState(true);
-    const [products, setProducts] = state.products;
-
-    // get all product
-    useEffect(() => {
-        const getProduct = async () => {
-            try {
-                const response = await ApiProduct.getAll();
-                setProducts(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-        getProduct();
-    }, []);
+    const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
 
 
     const category = [
