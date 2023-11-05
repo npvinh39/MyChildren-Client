@@ -7,14 +7,15 @@ import { Empty, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import { FaHome, FaCreditCard, FaTruck, FaCheckSquare, FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
+import { getCart, getProductCart } from '../../features/cart/cartSlice';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { apiProvince } from '../../api/api-province';
 import { openPayment } from '../../api/paymentClient.ts';
 
 export const Checkout = () => {
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [cart, setCart] = useState([]);
     const dispatch = useDispatch();
+    const { cart, productCart } = useSelector(state => state.cart);
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
     const [quantity, setQuantity] = useState(0);
     const [timeStamp, setTimeStamp] = useState('');
@@ -64,20 +65,20 @@ export const Checkout = () => {
 
 
 
-    useEffect(() => {
-        // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-            setCart(JSON.parse(savedCart));
-        }
+    // useEffect(() => {
+    //     // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
+    //     const savedCart = localStorage.getItem('cart');
+    //     if (savedCart) {
+    //         setCart(JSON.parse(savedCart));
+    //     }
 
-    }, [setCart]);
+    // }, [setCart]);
 
     useEffect(() => {
         // get quantity of cart
         const getQuantity = () => {
             let quantity = 0;
-            cart.forEach(item => {
+            cart?.forEach(item => {
                 quantity += item.quantity;
             });
             setQuantity(quantity);
@@ -87,20 +88,18 @@ export const Checkout = () => {
     }, [cart]);
 
     const removeCartItem = (index) => {
-        setCart((prevCart) => {
-            const newCart = [...prevCart];
-            newCart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(newCart));
-            return newCart;
-        });
+        const updatedCart = [...cart];
+        updatedCart.splice(index, 1);
+        dispatch(getCart(updatedCart));
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
     const updateCartItemQuantity = (itemId, newQuantity) => {
         const updatedCart = cart.map(cartItem =>
-            cartItem._id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
+            cartItem.product_id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
         );
 
-        setCart(updatedCart);
+        dispatch(getCart(updatedCart));
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
@@ -121,27 +120,12 @@ export const Checkout = () => {
     }, [street, ward, selectedDistrict, selectedProvince]);
 
 
-
-    // get all product of cart
-    const getProduct = () => {
-        let product = [];
-        cart.forEach(item => {
-            products.forEach(productItem => {
-                if (item._id === productItem._id) {
-                    product.push(productItem);
-                }
-            });
-        });
-        return product;
-    };
-    const productCart = getProduct();
-
     // get total price of cart
     const getTotal = () => {
         let total = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             products.forEach(productItem => {
-                if (item._id === productItem._id) {
+                if (item.product_id === productItem._id) {
                     total += Number(productItem.price_discount) * item.quantity;
                 }
             });
@@ -152,8 +136,8 @@ export const Checkout = () => {
     // get quantity of product
     const getQuantityOfProduct = (id) => {
         let quantity = 0;
-        cart.forEach(item => {
-            if (item._id === id) {
+        cart?.forEach(item => {
+            if (item.product_id === id) {
                 quantity = item.quantity;
             }
         });
@@ -481,9 +465,9 @@ export const Checkout = () => {
 
                                             </tr>
                                         ) : (
-                                            cart.length === 0 ?
+                                            cart?.length === 0 ?
                                                 (
-                                                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                                                    <tr><td><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /></td></tr>
                                                 )
                                                 :
                                                 productCart.map((product, index) => (

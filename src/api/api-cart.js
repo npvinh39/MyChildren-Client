@@ -1,6 +1,6 @@
 import { axiosClient } from "./client-axios";
 
-const apiCart = {
+export const apiCart = {
     getCart: () => {
         const url = `/cart`;
         return axiosClient.get(url);
@@ -11,7 +11,7 @@ const apiCart = {
     },
     updateProductFromCart: (data) => {
         const url = `/cart/update`;
-        return axiosClient.post(url, data);
+        return axiosClient.patch(url, data);
     },
     deleteProductFromCart: (data) => {
         const url = `/cart/delete/${data.id}`;

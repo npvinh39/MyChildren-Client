@@ -4,14 +4,15 @@ import { Link } from 'react-router-dom';
 import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
-
+import { getCart, getProductCart } from '../../features/cart/cartSlice';
 
 export const Cart = () => {
 
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [cart, setCart] = useState([]);
+    // const [cart, setCart] = useState([]);
     const dispatch = useDispatch();
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { cart, productCart } = useSelector(state => state.cart);
 
     useEffect(() => {
         const pageTitle = 'THÔNG TIN ĐƠN HÀNG';
@@ -31,23 +32,23 @@ export const Cart = () => {
         // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
         const savedCart = localStorage.getItem('cart');
         if (savedCart) {
-            setCart(JSON.parse(savedCart));
+            // setCart(JSON.parse(savedCart));
+            dispatch(getCart(JSON.parse(savedCart)));
         }
     }, []);
 
     const removeCartItem = (index) => {
-        setCart((prevCart) => {
-            const newCart = [...prevCart];
-            newCart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(newCart));
-            return newCart;
-        });
+        const newCart = [...cart];
+        newCart.splice(index, 1);
+        // setCart(newCart);
+        dispatch(getCart(newCart));
+        localStorage.setItem('cart', JSON.stringify(newCart));
     };
 
     // get quantity of cart
     const getQuantity = () => {
         let quantity = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             quantity += item.quantity;
         });
         return quantity;
@@ -55,33 +56,34 @@ export const Cart = () => {
 
     const updateCartItemQuantity = (itemId, newQuantity) => {
         const updatedCart = cart.map(cartItem =>
-            cartItem._id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
+            cartItem.product_id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
         );
 
-        setCart(updatedCart);
+        // setCart(updatedCart);
+        dispatch(getCart(updatedCart));
         localStorage.setItem('cart', JSON.stringify(updatedCart));
     };
 
-    // get all product of cart
-    const getProduct = () => {
-        let product = [];
-        cart.forEach(item => {
-            products.forEach(productItem => {
-                if (item._id === productItem._id) {
-                    product.push(productItem);
-                }
-            });
-        });
-        return product;
-    };
-    const productCart = getProduct();
+    // // get all product of cart
+    // const getProduct = () => {
+    //     let product = [];
+    //     cart.forEach(item => {
+    //         products.forEach(productItem => {
+    //             if (item.product_id === productItem._id) {
+    //                 product.push(productItem);
+    //             }
+    //         });
+    //     });
+    //     return product;
+    // };
+    // const productCart = getProduct();
 
     // get total price of cart
     const getTotal = () => {
         let total = 0;
-        cart.forEach(item => {
+        cart?.forEach(item => {
             products.forEach(productItem => {
-                if (item._id === productItem._id) {
+                if (item.product_id === productItem._id) {
                     total += Number(productItem.price_discount) * item.quantity;
                 }
             });
@@ -93,7 +95,7 @@ export const Cart = () => {
     const getQuantityOfProduct = (id) => {
         let quantity = 0;
         cart.forEach(item => {
-            if (item._id === id) {
+            if (item.product_id === id) {
                 quantity = item.quantity;
             }
         });

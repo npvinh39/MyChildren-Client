@@ -10,14 +10,15 @@ import { ProductsSaleList } from './ProductsSaleList';
 import { message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProduct } from '../../features/product/path-api';
+import { getCart, getProductCart } from '../../features/cart/cartSlice';
 
 
 export const ProductDetail = ({ match }) => {
-    const [cart, setCart] = useState([]);
     const { id } = useParams();
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
     const { products, product, images, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { cart, productCart } = useSelector(state => state.cart);
 
     const location = useLocation();
     useEffect(() => {
@@ -42,29 +43,29 @@ export const ProductDetail = ({ match }) => {
         // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
         const savedCart = localStorage.getItem('cart');
         if (savedCart) {
-            setCart(JSON.parse(savedCart));
+            dispatch(getCart(JSON.parse(savedCart)));
         }
     }, []);
 
     const addToCart = (item) => {
-        const existingItemIndex = cart.findIndex(cartItem => cartItem._id === item._id);
+        const existingItemIndex = cart.findIndex(cartItem => cartItem.product_id === item._id);
 
         if (existingItemIndex !== -1) {
             const newCart = cart.map(cartItem =>
-                cartItem._id === item._id ? { ...cartItem, quantity: cartItem.quantity + quantity } : cartItem
+                cartItem.product_id === item._id ? { ...cartItem, quantity: cartItem.quantity + quantity } : cartItem
             );
-            setCart(newCart);
+            dispatch(getCart(newCart));
 
             // Lưu giỏ hàng mới vào localStorage
             localStorage.setItem('cart', JSON.stringify(newCart));
         } else {
             const newItem = {
-                _id: item._id,
+                product_id: item._id,
                 quantity: quantity
             };
 
             const newCart = [...cart, newItem];
-            setCart(newCart);
+            dispatch(getCart(newCart));
 
             // Lưu giỏ hàng mới vào localStorage
             localStorage.setItem('cart', JSON.stringify(newCart));
@@ -74,21 +75,31 @@ export const ProductDetail = ({ match }) => {
     };
 
     const updateCartItem = (index, updatedItem) => {
-        setCart((prevCart) => {
-            const newCart = [...prevCart];
-            newCart[index] = updatedItem;
-            localStorage.setItem('cart', JSON.stringify(newCart));
-            return newCart;
-        });
+        // setCart((prevCart) => {
+        //     const newCart = [...prevCart];
+        //     newCart[index] = updatedItem;
+        //     localStorage.setItem('cart', JSON.stringify(newCart));
+        //     return newCart;
+        // });
+        const oldCart = localStorage.getItem('cart');
+        const newCart = JSON.parse(oldCart);
+        newCart[index] = updatedItem;
+        dispatch(getCart(newCart));
+        localStorage.setItem('cart', JSON.stringify(newCart));
     };
 
     const removeCartItem = (index) => {
-        setCart((prevCart) => {
-            const newCart = [...prevCart];
-            newCart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(newCart));
-            return newCart;
-        });
+        // setCart((prevCart) => {
+        //     const newCart = [...prevCart];
+        //     newCart.splice(index, 1);
+        //     localStorage.setItem('cart', JSON.stringify(newCart));
+        //     return newCart;
+        // });
+        const oldCart = localStorage.getItem('cart');
+        const newCart = JSON.parse(oldCart);
+        newCart.splice(index, 1);
+        dispatch(getCart(newCart));
+        localStorage.setItem('cart', JSON.stringify(newCart));
     };
 
     //quantity
@@ -139,7 +150,7 @@ export const ProductDetail = ({ match }) => {
 
                         <div className="product-detail__info__sku text-sm text-gray-500">
                             <span>
-                                Thương hiệu: <Link className='text-blue-500'>{product.product_id}</Link>
+                                Thương hiệu: <Link className='text-blue-500'>{product.description.brand}</Link>
                             </span>
                             <span className='ml-9'>
                                 <b>SKU: </b>{product.product_id}

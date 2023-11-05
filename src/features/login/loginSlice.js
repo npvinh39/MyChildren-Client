@@ -43,6 +43,7 @@ export const loginSlice = createSlice({
             state.loading = false
             state.isAuth = true
             state.data = action.payload
+            window.location.reload()
         },
         [onLogin.rejected]: (state, action) => {
             state.loading = false

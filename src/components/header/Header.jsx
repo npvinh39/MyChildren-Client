@@ -10,19 +10,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { onLogin, onLogout } from '../../features/login/path-api';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { fetchProfile } from '../../features/user/path-api';
+import { updateProductFromCart } from '../../features/cart/path-api';
+import { getCart, getProductCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
 
 export const Header = () => {
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    const [cart, setCart] = useState([]);
     const dispatch = useDispatch();
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
-    const onFinish = (values) => {
-        dispatch(onLogin(values))
-    };
+    const { cart, productCart } = useSelector(state => state.cart);
+
 
     // get id user from access token cookies
     const accessToken = Cookies.get('accessToken');
@@ -46,17 +46,41 @@ export const Header = () => {
             dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
         }
     }, [dispatch, currentPage, pageSize]);
+    console.log({ profile })
 
     useEffect(() => {
         // check if isAuth is true then get cart from profile user else get cart from local storage
         const savedCart = JSON.parse(localStorage.getItem('cart'));
         if (isAuth) {
             // save cart to profile user
-            setCart(profile?.cart.products);
+            if (savedCart) {
+                dispatch(updateProductFromCart({ products: savedCart }));
+                localStorage.removeItem('cart');
+            }
+            dispatch(getCart(profile?.cart.products));
         } else {
-            setCart(savedCart || []);
+            // save cart to local storage
+            if (savedCart) {
+                dispatch(getCart(savedCart));
+            }
         }
-    }, []);
+    }, [dispatch, isAuth, profile?.cart.products.length]);
+
+    useEffect(() => {
+        // get product from cart
+        const productCart = [];
+        if (Array.isArray(cart)) {
+            cart?.forEach(item => {
+                products.forEach(productItem => {
+                    if (item.product_id === productItem._id) {
+                        productCart.push(productItem);
+                    }
+                });
+            });
+        }
+        // setProductCart(productCart);
+        dispatch(getProductCart(productCart));
+    }, [cart, products, dispatch]);
 
     // Modal logout
     const navigate = useNavigate();
@@ -74,6 +98,7 @@ export const Header = () => {
         setOpenModalLogOut(false);
         setConfirmLoading(false);
         setModalText('Bạn có chắc chắn muốn đăng xuất?');
+        window.location.reload();
     };
     const handleCancel = () => {
         setOpenModalLogOut(false);
@@ -86,59 +111,52 @@ export const Header = () => {
     };
 
     const removeCartItem = (index) => {
-        setCart((prevCart) => {
-            const newCart = [...prevCart];
-            newCart.splice(index, 1);
-            localStorage.setItem('cart', JSON.stringify(newCart));
-            return newCart;
-        });
+        const newCart = cart.filter((item, i) => i !== index);
+        // setCart(newCart);
+        dispatch(getCart(newCart));
+        localStorage.setItem('cart', JSON.stringify(newCart));
     };
 
     // get quantity of cart
     const getQuantity = () => {
-        let quantity = 0;
-        cart?.forEach(item => {
-            quantity += item.quantity;
-        });
-        return quantity;
-    };
-
-    // get all product of cart
-    const getProduct = () => {
-        let product = [];
-        cart?.forEach(item => {
-            products?.forEach(productItem => {
-                if (item._id === productItem._id) {
-                    product.push(productItem);
-                }
+        if (Array.isArray(cart)) {
+            let quantity = 0;
+            cart?.forEach(item => {
+                quantity += item.quantity;
             });
-        });
-        return product;
+            return quantity;
+        }
+        return 0;
     };
-    const productCart = getProduct();
 
     // get total price of cart
     const getTotal = () => {
-        let total = 0;
-        cart?.forEach(item => {
-            products.forEach(productItem => {
-                if (item._id === productItem._id) {
-                    total += Number(productItem.price_discount) * item.quantity;
-                }
+        if (Array.isArray(cart)) {
+            let total = 0;
+            cart?.forEach(item => {
+                products.forEach(productItem => {
+                    if (item.product_id === productItem._id) {
+                        total += Number(productItem.price_discount) * item.quantity;
+                    }
+                });
             });
-        });
-        return total;
+            return total;
+        }
+        return 0;
     };
 
     // get quantity of product
     const getQuantityOfProduct = (id) => {
-        let quantity = 0;
-        cart?.forEach(item => {
-            if (item._id === id) {
-                quantity = item.quantity;
-            }
-        });
-        return quantity;
+        if (Array.isArray(cart)) {
+            let quantity = 0;
+            cart?.forEach(item => {
+                if (item.product_id === id) {
+                    quantity = item.quantity;
+                }
+            });
+            return quantity;
+        }
+        return 0;
     };
 
     // search product
@@ -483,7 +501,7 @@ export const Header = () => {
                                                     <Spin />
                                                 </div>
                                             ) : (
-                                                cart?.length === 0 ?
+                                                cart && cart?.length === 0 ?
                                                     (
                                                         <Empty description='Giỏ hàng rỗng' image={Empty.PRESENTED_IMAGE_SIMPLE} />
                                                     )
