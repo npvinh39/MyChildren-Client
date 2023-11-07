@@ -11,8 +11,19 @@ export const apiRated = {
         return axiosClient.get(url);
     },
 
-    getByProductId: (id) => {
-        const url = `/rated/product/${id}`;
+    getByUserId: (id) => {
+        const url = `/rated/user/${id}`;
+        return axiosClient.get(url);
+    },
+
+
+    getByProductId: (params) => {
+        const url = `/rated/product/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}`;
+        return axiosClient.get(url);
+    },
+
+    getTotalRating: (id) => {
+        const url = `/rated/total-rating/${id}`;
         return axiosClient.get(url);
     },
 

@@ -3,6 +3,8 @@ import {
     fetchRateds,
     fetchRated,
     fetchRatedByProductId,
+    fetchRatedByUserId,
+    fetchTotalRating,
     createRated,
     updateRated,
     deleteRated,
@@ -12,7 +14,10 @@ export const ratedSlice = createSlice({
     name: "rated",
     initialState: {
         rateds: [],
+        ratedByProduct: [],
         rated: null,
+        totalRating: 0,
+        totalStar: 0,
         loading: false,
         message: "",
         currentPage: 1,
@@ -51,9 +56,35 @@ export const ratedSlice = createSlice({
         },
         [fetchRatedByProductId.fulfilled]: (state, action) => {
             state.loading = false;
-            state.rateds = action.payload.rateds;
+            state.ratedByProduct = action.payload.rated;
+            state.totalPages = action.payload.totalPages;
+            state.currentPage = action.meta.arg.currentPage;
+            state.pageSize = action.meta.arg.pageSize;
         },
         [fetchRatedByProductId.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
+        [fetchRatedByUserId.pending]: (state) => {
+            state.loading = true;
+        },
+        [fetchRatedByUserId.fulfilled]: (state, action) => {
+            state.loading = false;
+            state.rateds = action.payload.rateds;
+        },
+        [fetchRatedByUserId.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
+        [fetchTotalRating.pending]: (state) => {
+            state.loading = true;
+        },
+        [fetchTotalRating.fulfilled]: (state, action) => {
+            state.loading = false;
+            state.totalRating = action.payload.total;
+            state.totalStar = action.payload.rating;
+        },
+        [fetchTotalRating.rejected]: (state, action) => {
             state.loading = false;
             state.message = action.payload;
         },

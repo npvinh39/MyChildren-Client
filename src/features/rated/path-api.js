@@ -30,6 +30,34 @@ export const fetchRated = createAsyncThunk(
     }
 );
 
+export const fetchRatedByUserId = createAsyncThunk(
+    "rated/fetchRatedByUserId",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiRated.getByUserId(params);
+            return response;
+        } catch (error) {
+            message.error(`Lấy đánh giá thất bại: ${error.msg}`);
+            console.log("Failed to fetch rated: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchTotalRating = createAsyncThunk(
+    "rated/fetchTotalRating",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiRated.getTotalRating(params);
+            return response;
+        } catch (error) {
+            message.error(`Lấy đánh giá thất bại: ${error.msg}`);
+            console.log("Failed to fetch rated: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
 export const fetchRatedByProductId = createAsyncThunk(
     "rated/fetchRatedByProductId",
     async (params, thunkAPI) => {

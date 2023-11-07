@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
+import dayjs from 'dayjs';
 import slugify from 'slugify';
 import { RiHeartLine, RiShoppingBag3Fill, RiShoppingCart2Fill, RiPhoneFill } from 'react-icons/ri';
-import { Skeleton } from 'antd';
+import { Skeleton, Tabs } from 'antd';
 import Breadcrumb from './Breadcrumb';
 import ProductImageSlider from './ProductImageSlider';
 import Rating from './Rating';
@@ -11,23 +12,35 @@ import { message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProduct } from '../../features/product/path-api';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
+import { fetchTotalRating, fetchRatedByProductId } from '../../features/rated/path-api';
 
 
 export const ProductDetail = ({ match }) => {
     const { id } = useParams();
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
-    const { products, product, images, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { products, product, images, loading } = useSelector(state => state.product);
     const { cart, productCart } = useSelector(state => state.cart);
+    const { ratedByProduct, totalRating, totalStar, currentPage, pageSize, totalPages, sort } = useSelector(state => state.rated);
 
     const location = useLocation();
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [location.pathname]);
 
+    const formatDate = (date) => {
+        return dayjs(date).format("HH:mm:ss DD/MM/YYYY");
+    };
+
     // get product by id
     useEffect(() => {
         dispatch(fetchProduct(id));
+    }, [id, dispatch]);
+
+    // get rated by product id
+    useEffect(() => {
+        dispatch(fetchRatedByProductId({ id, currentPage, pageSize, sort }));
+        dispatch(fetchTotalRating(id));
     }, [id, dispatch]);
 
     // change title to product name
@@ -75,12 +88,6 @@ export const ProductDetail = ({ match }) => {
     };
 
     const updateCartItem = (index, updatedItem) => {
-        // setCart((prevCart) => {
-        //     const newCart = [...prevCart];
-        //     newCart[index] = updatedItem;
-        //     localStorage.setItem('cart', JSON.stringify(newCart));
-        //     return newCart;
-        // });
         const oldCart = localStorage.getItem('cart');
         const newCart = JSON.parse(oldCart);
         newCart[index] = updatedItem;
@@ -89,12 +96,6 @@ export const ProductDetail = ({ match }) => {
     };
 
     const removeCartItem = (index) => {
-        // setCart((prevCart) => {
-        //     const newCart = [...prevCart];
-        //     newCart.splice(index, 1);
-        //     localStorage.setItem('cart', JSON.stringify(newCart));
-        //     return newCart;
-        // });
         const oldCart = localStorage.getItem('cart');
         const newCart = JSON.parse(oldCart);
         newCart.splice(index, 1);
@@ -144,8 +145,17 @@ export const ProductDetail = ({ match }) => {
                     <div className="product-detail__info w-full md:w-6/12 lg:w-7/12">
                         <h1 className="product-detail__info__name text-xl font-semibold capitalize">{product.name}</h1>
 
-                        <div className="product-detail__info__rating my-1">
-                            <Rating rating={4.5} />
+                        <div className="product-detail__info__rating my-2 flex">
+                            <Rating rating={totalStar} />
+                            <div className="product-detail__info__rating__count text-sm text-gray-500 ml-2">
+                                {
+                                    totalRating == 0 ?
+                                        <span className='text-red-500'>Chưa có đánh giá</span>
+                                        :
+                                        <span className='text-gray-500'>{totalStar} ({totalRating})</span>
+                                }
+                                {/* <span className='text-red-500'>{totalRating}</span> trên 5 */}
+                            </div>
                         </div>
 
                         <div className="product-detail__info__sku text-sm text-gray-500">
@@ -317,76 +327,114 @@ export const ProductDetail = ({ match }) => {
                     </div>
                 </div>
                 <div className="product-detail__description my-5">
-                    <div className="product-detail__content">
-                        <div className="product-detail__description__title">
-                            <h3 className="text-lg font-semibold">Mô tả sản phẩm</h3>
-                        </div>
-                        <div className="product-detail__description__content mt-2">
-                            <h5 className="text-lg font-semibold capitalize">{product.name}</h5>
-                            <div className="text-sm text-gray-500 text-justify">
-                                <div dangerouslySetInnerHTML={{ __html: product.content }}></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="product-detail__table mt-10">
-                        <div className="product-detail__table__title">
-                            <h3 className="text-lg font-semibold">Thông tin sản phẩm</h3>
-                        </div>
-                        <div className="product-detail__table__content mt-2">
-                            <table className="w-full">
-                                <tbody>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Thương hiệu
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                {product.description.brand}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Sản xuất tại
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                {product.description.made_in}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Nguồn gốc
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                {product.description.origin}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='font-semibold text-[13px] text-gray-500'>
-                                                Độ tuổi sử dụng
-                                            </p>
-                                        </td>
-                                        <td className='border px-4 py-4 text-sm w-1/2'>
-                                            <p className='text-[15px]  text-gray-700'>
-                                                {product.description.age_of_use}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <Tabs
+                        defaultActiveKey="1"
+                        size='large'
+                        type='card'
+                        items={[
+                            {
+                                key: '1',
+                                label: 'Mô tả sản phẩm',
+                                children: <div dangerouslySetInnerHTML={{ __html: product.content }}></div>
+                            },
+                            {
+                                key: '2',
+                                label: 'Thông tin sản phẩm',
+                                children: <table className="w-full">
+                                    <tbody>
+                                        <tr>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='font-semibold text-[13px] text-gray-500'>
+                                                    Thương hiệu
+                                                </p>
+                                            </td>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='text-[15px]  text-gray-700'>
+                                                    {product.description.brand}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='font-semibold text-[13px] text-gray-500'>
+                                                    Sản xuất tại
+                                                </p>
+                                            </td>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='text-[15px]  text-gray-700'>
+                                                    {product.description.made_in}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='font-semibold text-[13px] text-gray-500'>
+                                                    Nguồn gốc
+                                                </p>
+                                            </td>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='text-[15px]  text-gray-700'>
+                                                    {product.description.origin}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='font-semibold text-[13px] text-gray-500'>
+                                                    Độ tuổi sử dụng
+                                                </p>
+                                            </td>
+                                            <td className='border px-4 py-4 text-sm w-1/2'>
+                                                <p className='text-[15px]  text-gray-700'>
+                                                    {product.description.age_of_use}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            },
+                            {
+                                key: '3',
+                                label: 'Đánh giá',
+                                children: <div>
+                                    <div className="product-detail__info__rating my-1">
+                                        <Rating rating={0} />
+                                    </div>
+                                    <div className="product-detail__info__rating__count text-sm text-gray-500">
+                                        <span className='text-red-500'>{0}</span> trên 5
+                                    </div>
+                                    {/* view rateds */}
+                                    <div className="product-detail__info__rating__list mt-2">
+                                        <table className="table-auto border w-full">
+                                            <tbody>
+                                                {
+                                                    ratedByProduct.map((rated, index) => (
+                                                        <tr className="border" key={index}>
+                                                            <td className='px-2 py-3 text-sm flex flex-col gap-1'>
+                                                                <p className='uppercase font-medium'>
+                                                                    {rated.name}
+                                                                </p>
+                                                                <p className='text-xs  text-gray-600'>
+                                                                    {rated.comment}
+                                                                </p>
+                                                                <div className="product-detail__info__rating my-1">
+                                                                    <Rating rating={rated.star} />
+                                                                </div>
+                                                                <p className='text-xs  text-gray-600'>
+                                                                    {formatDate(rated.createdAt)}
+                                                                </p>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            },
+                        ]
+                        }
+                    />
                 </div>
                 <div className="maybe-you-like">
                     <ProductsSaleList
