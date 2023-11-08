@@ -18,7 +18,12 @@ export const apiRated = {
 
 
     getByProductId: (params) => {
-        const url = `/rated/product/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}`;
+        const url = `/rated/product/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort || null}&status=${params.status}`;
+        return axiosClient.get(url);
+    },
+
+    getRatedProductByyUserId: (params) => {
+        const url = `/rated/product/${params.id}?user_id[regex]=${params.user_id}`;
         return axiosClient.get(url);
     },
 

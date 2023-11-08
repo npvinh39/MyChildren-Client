@@ -72,6 +72,20 @@ export const fetchRatedByProductId = createAsyncThunk(
     }
 );
 
+export const fetchRatedProductByUserId = createAsyncThunk(
+    "rated/fetchRatedProductByUserId",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiRated.getRatedProductByyUserId(params);
+            return response;
+        } catch (error) {
+            message.error(`Lấy đánh giá thất bại: ${error.msg}`);
+            console.log("Failed to fetch rated: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
 export const createRated = createAsyncThunk(
     "rated/createRated",
     async (params, thunkAPI) => {

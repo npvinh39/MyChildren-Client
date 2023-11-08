@@ -3,25 +3,27 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 import slugify from 'slugify';
 import { RiHeartLine, RiShoppingBag3Fill, RiShoppingCart2Fill, RiPhoneFill } from 'react-icons/ri';
-import { Skeleton, Tabs } from 'antd';
 import Breadcrumb from './Breadcrumb';
 import ProductImageSlider from './ProductImageSlider';
 import Rating from './Rating';
 import { ProductsSaleList } from './ProductsSaleList';
-import { message } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProduct } from '../../features/product/path-api';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
-import { fetchTotalRating, fetchRatedByProductId } from '../../features/rated/path-api';
+import { fetchTotalRating, fetchRatedByProductId, fetchRatedProductByUserId, createRated } from '../../features/rated/path-api';
+import { Skeleton, Tabs, Input, Button, Rate, Form, message, Empty, Divider, Badge } from 'antd';
+const { TextArea } = Input;
 
 
 export const ProductDetail = ({ match }) => {
     const { id } = useParams();
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
+    const { isAuth } = useSelector(state => state.login);
+    const { profile } = useSelector(state => state.user);
     const { products, product, images, loading } = useSelector(state => state.product);
     const { cart, productCart } = useSelector(state => state.cart);
-    const { ratedByProduct, totalRating, totalStar, currentPage, pageSize, totalPages, sort } = useSelector(state => state.rated);
+    const { ratedByProduct, ratedProductByUserId, totalRating, totalStar, currentPage, pageSize, totalPages, sort } = useSelector(state => state.rated);
 
     const location = useLocation();
     useEffect(() => {
@@ -29,7 +31,7 @@ export const ProductDetail = ({ match }) => {
     }, [location.pathname]);
 
     const formatDate = (date) => {
-        return dayjs(date).format("HH:mm:ss DD/MM/YYYY");
+        return dayjs(date).format("DD-MM-YYYY HH:mm");
     };
 
     // get product by id
@@ -37,9 +39,16 @@ export const ProductDetail = ({ match }) => {
         dispatch(fetchProduct(id));
     }, [id, dispatch]);
 
+    // get rating product by user id
+    useEffect(() => {
+        if (profile) {
+            dispatch(fetchRatedProductByUserId({ id, user_id: profile._id }));
+        }
+    }, [profile, id, dispatch]);
+
     // get rated by product id
     useEffect(() => {
-        dispatch(fetchRatedByProductId({ id, currentPage, pageSize, sort }));
+        dispatch(fetchRatedByProductId({ id, currentPage, pageSize, sort, status: '1' }));
         dispatch(fetchTotalRating(id));
     }, [id, dispatch]);
 
@@ -108,6 +117,13 @@ export const ProductDetail = ({ match }) => {
     const handleQuantityChange = (value) => {
         setQuantity((prevQuantity) => Math.max(1, prevQuantity + value));
     };
+
+    // on submit comment and rating
+    const onFinish = (values) => {
+        console.log('Success:', values);
+        dispatch(createRated(values));
+    };
+
     if (!product) {
         return (
             <div className='product-detail container mx-auto px-3 2xl:px-20 my-4'>
@@ -154,13 +170,12 @@ export const ProductDetail = ({ match }) => {
                                         :
                                         <span className='text-gray-500'>{totalStar} ({totalRating})</span>
                                 }
-                                {/* <span className='text-red-500'>{totalRating}</span> trên 5 */}
                             </div>
                         </div>
 
                         <div className="product-detail__info__sku text-sm text-gray-500">
                             <span>
-                                Thương hiệu: <Link className='text-blue-500'>{product.description.brand}</Link>
+                                Đã bán: <Link className='text-blue-500'>{product.sold}</Link>
                             </span>
                             <span className='ml-9'>
                                 <b>SKU: </b>{product.product_id}
@@ -397,35 +412,159 @@ export const ProductDetail = ({ match }) => {
                                 key: '3',
                                 label: 'Đánh giá',
                                 children: <div>
-                                    <div className="product-detail__info__rating my-1">
-                                        <Rating rating={0} />
-                                    </div>
-                                    <div className="product-detail__info__rating__count text-sm text-gray-500">
-                                        <span className='text-red-500'>{0}</span> trên 5
-                                    </div>
+                                    {
+                                        isAuth ?
+                                            (
+                                                ratedProductByUserId?.length > 0 ?
+                                                    (
+                                                        // show rating of user
+                                                        <div>
+                                                            <Divider>Đánh giá của Bạn</Divider>
+                                                            <table className="table-auto border w-full">
+                                                                <tbody>
+                                                                    {
+                                                                        ratedProductByUserId.map((rated, index) => (
+                                                                            <tr className="border" key={index}>
+                                                                                {/* start */}
+                                                                                <td className='px-2 py-3 text-sm flex flex-col gap-1'>
+                                                                                    <div className='flex justify-start items-center'>
+                                                                                        <p className='uppercase font-semibold mr-4'>
+                                                                                            {rated.name}
+                                                                                        </p>
+                                                                                        {
+                                                                                            rated.status === 0 ?
+                                                                                                <Badge status='processing' text='Đang chờ duyệt' />
+                                                                                                :
+                                                                                                rated.status === 1 ?
+                                                                                                    <Badge status='success' text='Đã duyệt' />
+                                                                                                    :
+                                                                                                    <Badge status='error' text='Bị từ chối' />
+                                                                                        }
+                                                                                    </div>
+                                                                                    <div className="product-detail__info__rating my-1">
+                                                                                        <Rating rating={rated.rating} />
+                                                                                    </div>
+                                                                                    <p className='text-base  text-gray-600'>
+                                                                                        {rated.comment}
+                                                                                    </p>
+                                                                                    <p className='text-xs  text-gray-600'>
+                                                                                        {formatDate(rated.createdAt)}
+                                                                                    </p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))
+                                                                    }
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )
+                                                    : (
+                                                        <div className="product-detail__info__rating__box-comment mt-2">
+                                                            <div className="product-detail__info__rating__box-comment__title flex justify-between items-center">
+                                                                <h3 className="text-xl font-semibold capitalize">Đánh giá của bạn</h3>
+                                                                <div className="product-detail__info__rating__box-comment__title__rating flex items-center">
+                                                                    <Rating rating={totalStar} />
+                                                                    <span className='text-sm text-gray-500 ml-2'>
+                                                                        {totalStar} ({totalRating})
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="product-detail__info__rating__box-comment__form mt-2">
+                                                                <Form
+                                                                    name="basic"
+                                                                    initialValues={{ remember: true }}
+                                                                    onFinish={onFinish}
+                                                                    onFinishFailed={() => { }}
+                                                                >
+                                                                    {/* fields product_id but hide interface */}
+                                                                    <Form.Item
+                                                                        name="product_id"
+                                                                        initialValue={product._id}
+                                                                        hidden
+                                                                    >
+                                                                        <Input />
+                                                                    </Form.Item>
+                                                                    <Form.Item
+                                                                        name="rating"
+                                                                        rules={[{ required: true, message: 'Vui lòng đánh giá sản phẩm!' }]}
+                                                                    >
+                                                                        <Rate tooltips={['Rất tệ', 'Tệ', 'Bình thường', 'Tốt', 'Rất tốt']} />
+                                                                    </Form.Item>
+                                                                    <Form.Item
+                                                                        name="comment"
+                                                                        rules={[{ required: true, message: 'Vui lòng nhập bình luận!' }]}
+                                                                    >
+                                                                        <TextArea rows={4} placeholder='Nhập bình luận của bạn (Lưu ý mỗi khách hàng chỉ có thể đánh giá một lần trên mỗi sản phẩm)' />
+                                                                    </Form.Item>
+                                                                    <Form.Item>
+                                                                        <Button type="primary" size='large' htmlType="submit" className='bg-blue-500 font-bold text-sm uppercase float-right'>
+                                                                            Gửi đánh giá
+                                                                        </Button>
+                                                                    </Form.Item>
+                                                                </Form>
+                                                            </div>
+                                                        </div>)
+                                            )
+                                            :
+                                            (
+                                                <div className="product-detail__info__rating__box-comment mt-2">
+                                                    <div className="product-detail__info__rating__box-comment__title flex justify-between items-center">
+                                                        <h3 className="text-xl font-semibold capitalize">Đánh giá của khách hàng</h3>
+                                                        <div className="product-detail__info__rating__box-comment__title__rating flex items-center">
+                                                            <Rating rating={totalStar} />
+                                                            <span className='text-sm text-gray-500 ml-2'>
+                                                                {totalStar} ({totalRating})
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="product-detail__info__rating__box-comment__form mt-2">
+                                                        <p className='text-sm text-gray-500'>
+                                                            Hãy <Link to='/login' className='text-blue-500'>đăng nhập</Link> ngay để có thể đánh giá sản phẩm
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )
+                                    }
+
                                     {/* view rateds */}
                                     <div className="product-detail__info__rating__list mt-2">
+                                        <Divider>Đánh giá của khách hàng</Divider>
                                         <table className="table-auto border w-full">
                                             <tbody>
                                                 {
-                                                    ratedByProduct.map((rated, index) => (
-                                                        <tr className="border" key={index}>
+                                                    ratedByProduct?.length > 0 ?
+                                                        ratedByProduct.map((rated, index) => (
+                                                            <tr className="border" key={index}>
+                                                                {/* start */}
+                                                                <td className='px-2 py-3 text-sm flex flex-col gap-1'>
+                                                                    <div className='flex justify-start items-center'>
+                                                                        <p className='uppercase font-semibold mr-4'>
+                                                                            {rated.name}
+                                                                        </p>
+                                                                        {
+                                                                            rated.status === 0 &&
+                                                                            <Badge status='processing' text='Đang chờ duyệt' />
+
+                                                                        }
+                                                                    </div>
+                                                                    <div className="product-detail__info__rating my-1">
+                                                                        <Rating rating={rated.rating} />
+                                                                    </div>
+                                                                    <p className='text-base  text-gray-600'>
+                                                                        {rated.comment}
+                                                                    </p>
+                                                                    <p className='text-xs  text-gray-600'>
+                                                                        {formatDate(rated.createdAt)}
+                                                                    </p>
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                        :
+                                                        <tr className="border">
                                                             <td className='px-2 py-3 text-sm flex flex-col gap-1'>
-                                                                <p className='uppercase font-medium'>
-                                                                    {rated.name}
-                                                                </p>
-                                                                <p className='text-xs  text-gray-600'>
-                                                                    {rated.comment}
-                                                                </p>
-                                                                <div className="product-detail__info__rating my-1">
-                                                                    <Rating rating={rated.star} />
-                                                                </div>
-                                                                <p className='text-xs  text-gray-600'>
-                                                                    {formatDate(rated.createdAt)}
-                                                                </p>
+                                                                <Empty description='Chưa có đánh giá' />
                                                             </td>
                                                         </tr>
-                                                    ))
                                                 }
                                             </tbody>
                                         </table>

@@ -46,7 +46,7 @@ export const Header = () => {
             dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
         }
     }, [dispatch, currentPage, pageSize]);
-    console.log({ profile })
+
 
     useEffect(() => {
         // check if isAuth is true then get cart from profile user else get cart from local storage
