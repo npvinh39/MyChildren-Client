@@ -10,8 +10,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { onLogin, onLogout } from '../../features/login/path-api';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { fetchProfile } from '../../features/user/path-api';
-import { updateProductFromCart } from '../../features/cart/path-api';
-import { getCart, getProductCart } from '../../features/cart/cartSlice';
+import { addToCart, updateProductFromCart } from '../../features/cart/path-api';
+import { getCart, getProductCart, getTotalPrice, getQuantityCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
 
@@ -21,8 +21,7 @@ export const Header = () => {
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
-    const { cart, productCart } = useSelector(state => state.cart);
-
+    const { cart, productCart, totalPrice, quantityCart } = useSelector(state => state.cart);
 
     // get id user from access token cookies
     const accessToken = Cookies.get('accessToken');
@@ -54,7 +53,7 @@ export const Header = () => {
         if (isAuth) {
             // save cart to profile user
             if (savedCart) {
-                dispatch(updateProductFromCart({ products: savedCart }));
+                dispatch(addToCart({ products: savedCart }));
                 localStorage.removeItem('cart');
             }
             dispatch(getCart(profile?.cart.products));
@@ -80,6 +79,8 @@ export const Header = () => {
         }
         // setProductCart(productCart);
         dispatch(getProductCart(productCart));
+        dispatch(getTotalPrice(getTotal()));
+        dispatch(getQuantityCart(getQuantity()));
     }, [cart, products, dispatch]);
 
     // Modal logout
@@ -134,7 +135,7 @@ export const Header = () => {
         if (Array.isArray(cart)) {
             let total = 0;
             cart?.forEach(item => {
-                products.forEach(productItem => {
+                products?.forEach(productItem => {
                     if (item.product_id === productItem._id) {
                         total += Number(productItem.price_discount) * item.quantity;
                     }
@@ -488,7 +489,7 @@ export const Header = () => {
                                     </Form>
                                 </div>
                             </Modal> */}
-                            <div className="cart group flex flex-col items-center badge cursor-pointer relative transition-all" data-count={getQuantity()}>
+                            <div className="cart group flex flex-col items-center badge cursor-pointer relative transition-all" data-count={quantityCart}>
                                 <Link to="/cart" className="text-3xl pr-1">
                                     <RiShoppingCart2Line />
                                 </Link>
@@ -540,7 +541,7 @@ export const Header = () => {
                                     </div>
                                     <div className="cart-price uppercase m-3 text-center  border-t-[1px] pt-4">
                                         <span className="text-xl text-slate-600 font-semibold">Tổng: </span>
-                                        <span className="text-xl text-red-500 font-semibold">{VND.format(getTotal())}</span>
+                                        <span className="text-xl text-red-500 font-semibold">{VND.format(totalPrice)}</span>
                                     </div>
                                     <div className="cart-action mx-3 my-4 flex flex-col justify-between items-center gap-3">
                                         <Link to='/cart'

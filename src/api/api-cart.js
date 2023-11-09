@@ -15,10 +15,10 @@ export const apiCart = {
     },
     deleteProductFromCart: (data) => {
         const url = `/cart/delete/${data.id}`;
-        return axiosClient.post(url, data);
+        return axiosClient.patch(url, data);
     },
     deleteAllProductFromCart: () => {
         const url = `/cart/delete-all`;
-        return axiosClient.post(url);
+        return axiosClient.patch(url);
     },
 }

@@ -12,6 +12,8 @@ export const cartSlice = createSlice({
     initialState: {
         cart: [],
         productCart: [],
+        totalPrice: 0,
+        quantityCart: 0,
         loading: false,
         message: "",
     },
@@ -23,7 +25,13 @@ export const cartSlice = createSlice({
 
         getProductCart: (state, action) => {
             state.productCart = action.payload;
-        }
+        },
+        getTotalPrice: (state, action) => {
+            state.totalPrice = action.payload;
+        },
+        getQuantityCart: (state, action) => {
+            state.quantityCart = action.payload;
+        },
     },
     extraReducers: {
         [fetchCart.pending]: (state) => {
@@ -42,8 +50,12 @@ export const cartSlice = createSlice({
         },
         [addToCart.fulfilled]: (state, action) => {
             state.loading = false;
-            state.cart = action.payload;
-            console.log("action", action);
+            const index = state.cart.findIndex((item) => item._id === action.payload.cart._id);
+            if (index >= 0) {
+                state.cart[index] = action.payload.cart;
+            } else {
+                state.cart.push(action.payload.cart);
+            }
         },
         [addToCart.rejected]: (state, action) => {
             state.loading = false;
@@ -54,7 +66,10 @@ export const cartSlice = createSlice({
         },
         [updateProductFromCart.fulfilled]: (state, action) => {
             state.loading = false;
-            state.cart = action.payload;
+            const index = state.cart.findIndex((item) => item._id === action.payload.cart._id);
+            if (index >= 0) {
+                state.cart[index] = action.payload.cart;
+            }
         },
         [updateProductFromCart.rejected]: (state, action) => {
             state.loading = false;
@@ -65,7 +80,10 @@ export const cartSlice = createSlice({
         },
         [deleteProductFromCart.fulfilled]: (state, action) => {
             state.loading = false;
-            state.cart = action.payload;
+            const index = state.cart.findIndex((item) => item._id === action.payload.cart._id);
+            if (index >= 0) {
+                state.cart.splice(index, 1);
+            }
         },
         [deleteProductFromCart.rejected]: (state, action) => {
             state.loading = false;
@@ -85,6 +103,6 @@ export const cartSlice = createSlice({
     },
 });
 
-export const { getCart, getProductCart } = cartSlice.actions;
+export const { getCart, getProductCart, getTotalPrice, getQuantityCart } = cartSlice.actions;
 
 export default cartSlice.reducer;

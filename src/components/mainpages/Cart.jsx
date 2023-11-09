@@ -5,14 +5,16 @@ import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
+import { updateProductFromCart, deleteProductFromCart } from '../../features/cart/path-api';
+
 
 export const Cart = () => {
 
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
-    // const [cart, setCart] = useState([]);
     const dispatch = useDispatch();
+    const { isAuth } = useSelector(state => state.login);
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
-    const { cart, productCart } = useSelector(state => state.cart);
+    const { cart, productCart, totalPrice, quantityCart } = useSelector(state => state.cart);
 
     useEffect(() => {
         const pageTitle = 'THÔNG TIN ĐƠN HÀNG';
@@ -37,21 +39,18 @@ export const Cart = () => {
         }
     }, []);
 
-    const removeCartItem = (index) => {
+
+    const removeCartItem = (index, id) => {
         const newCart = [...cart];
         newCart.splice(index, 1);
         // setCart(newCart);
         dispatch(getCart(newCart));
-        localStorage.setItem('cart', JSON.stringify(newCart));
-    };
-
-    // get quantity of cart
-    const getQuantity = () => {
-        let quantity = 0;
-        cart?.forEach(item => {
-            quantity += item.quantity;
-        });
-        return quantity;
+        if (isAuth) {
+            dispatch(deleteProductFromCart({ id }));
+        }
+        else {
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        }
     };
 
     const updateCartItemQuantity = (itemId, newQuantity) => {
@@ -61,40 +60,19 @@ export const Cart = () => {
 
         // setCart(updatedCart);
         dispatch(getCart(updatedCart));
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
-    };
-
-    // // get all product of cart
-    // const getProduct = () => {
-    //     let product = [];
-    //     cart.forEach(item => {
-    //         products.forEach(productItem => {
-    //             if (item.product_id === productItem._id) {
-    //                 product.push(productItem);
-    //             }
-    //         });
-    //     });
-    //     return product;
-    // };
-    // const productCart = getProduct();
-
-    // get total price of cart
-    const getTotal = () => {
-        let total = 0;
-        cart?.forEach(item => {
-            products.forEach(productItem => {
-                if (item.product_id === productItem._id) {
-                    total += Number(productItem.price_discount) * item.quantity;
-                }
-            });
-        });
-        return total;
+        if (isAuth) {
+            dispatch(updateProductFromCart({ products: updatedCart }));
+        }
+        else {
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+        }
     };
 
     // get quantity of product
     const getQuantityOfProduct = (id) => {
         let quantity = 0;
-        cart.forEach(item => {
+
+        cart?.forEach(item => {
             if (item.product_id === id) {
                 quantity = item.quantity;
             }
@@ -110,7 +88,7 @@ export const Cart = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="py-2 w-full">
-                    <h1 className='text-xl uppercase font-bold'>Thông tin đơn hàng <span className='normal-case'>({getQuantity()} sản phẩm)</span></h1>
+                    <h1 className='text-xl uppercase font-bold'>Thông tin đơn hàng <span className='normal-case'>({quantityCart} sản phẩm)</span></h1>
                     <div className=" border-t-2 border-b-2 my-4 max-h-[50vh] overflow-y-auto">
                         {
                             productCart.map((product, index) => (
@@ -143,15 +121,27 @@ export const Cart = () => {
                                                 </div>
                                             </div>
                                             <div
-                                                onClick={() => removeCartItem(index)}
+                                                onClick={() => removeCartItem(index, product._id)}
                                                 className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer">
                                                 <FaTrashAlt />
                                             </div>
                                         </div>
                                     </div>
                                     <div className="cart-list__item__info__price text-sm text-slate-600 font-bold mr-6">
-                                        <span className='block text-[13px] text-red-500'>{VND.format(Number(product.price_discount))}</span>
-                                        <span className='block text-[13px] text-slate-600 line-through'>{VND.format(Number(product.price))}</span>
+                                        {
+                                            product.price_discount === product.price ?
+                                                (
+                                                    <span className='block text-[13px] text-red-500'>{VND.format(Number(product.price_discount))}</span>
+                                                )
+                                                :
+                                                (
+                                                    <div>
+                                                        <span className='block text-[13px] text-red-500'>{VND.format(Number(product.price_discount))}</span>
+                                                        <span className='block text-[13px] text-slate-600 line-through'>{VND.format(Number(product.price))}</span>
+                                                    </div>
+                                                )
+                                        }
+
                                     </div>
 
                                 </div>
@@ -175,7 +165,7 @@ export const Cart = () => {
                     <h1 className='text-xl uppercase font-semibold text-gray-600'>Tóm tắt đơn hàng</h1>
                     <div className="flex justify-between items-center my-2">
                         <span className='text-sm uppercase font-semibold'>Tạm tính</span>
-                        <span className='text-sm font-semibold'>{VND.format(getTotal())}</span>
+                        <span className='text-sm font-semibold'>{VND.format(totalPrice)}</span>
                     </div>
                     <div className="flex justify-between items-center my-2">
                         <span className='text-sm uppercase font-light'>Giảm</span>
@@ -188,7 +178,7 @@ export const Cart = () => {
                     <div className="border"></div>
                     <div className="flex justify-between items-center my-2">
                         <span className='text-xl uppercase font-bold'>Thành tiền</span>
-                        <span className='text-xl font-bold'>{VND.format(getTotal())}</span>
+                        <span className='text-xl font-bold'>{VND.format(totalPrice)}</span>
                     </div>
                     <Link to='/checkout'
                         className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">

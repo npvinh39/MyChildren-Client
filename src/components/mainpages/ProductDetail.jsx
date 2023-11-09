@@ -10,6 +10,7 @@ import { ProductsSaleList } from './ProductsSaleList';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProduct } from '../../features/product/path-api';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
+import { updateProductFromCart } from '../../features/cart/path-api';
 import { fetchTotalRating, fetchRatedByProductId, fetchRatedProductByUserId, createRated } from '../../features/rated/path-api';
 import { Skeleton, Tabs, Input, Button, Rate, Form, message, Empty, Divider, Badge } from 'antd';
 const { TextArea } = Input;
@@ -70,16 +71,24 @@ export const ProductDetail = ({ match }) => {
     }, []);
 
     const addToCart = (item) => {
+        console.log('item', item)
         const existingItemIndex = cart.findIndex(cartItem => cartItem.product_id === item._id);
-
+        console.log('existingItemIndex', existingItemIndex)
         if (existingItemIndex !== -1) {
             const newCart = cart.map(cartItem =>
                 cartItem.product_id === item._id ? { ...cartItem, quantity: cartItem.quantity + quantity } : cartItem
             );
             dispatch(getCart(newCart));
 
-            // Lưu giỏ hàng mới vào localStorage
-            localStorage.setItem('cart', JSON.stringify(newCart));
+            if (isAuth) {
+                dispatch(updateProductFromCart({ products: newCart }));
+            }
+            else {
+                // Lưu giỏ hàng mới vào localStorage
+                localStorage.setItem('cart', JSON.stringify(newCart));
+                message.success('Thêm vào giỏ hàng thành công');
+
+            }
         } else {
             const newItem = {
                 product_id: item._id,
@@ -89,11 +98,16 @@ export const ProductDetail = ({ match }) => {
             const newCart = [...cart, newItem];
             dispatch(getCart(newCart));
 
-            // Lưu giỏ hàng mới vào localStorage
-            localStorage.setItem('cart', JSON.stringify(newCart));
-        }
+            if (isAuth) {
+                dispatch(updateProductFromCart({ products: newCart }));
+            }
+            else {
+                // Lưu giỏ hàng mới vào localStorage
+                localStorage.setItem('cart', JSON.stringify(newCart));
+                message.success('Thêm vào giỏ hàng thành công');
 
-        message.success('Thêm vào giỏ hàng thành công');
+            }
+        }
     };
 
     const updateCartItem = (index, updatedItem) => {
