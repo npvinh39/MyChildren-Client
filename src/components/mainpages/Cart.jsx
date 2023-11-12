@@ -180,10 +180,28 @@ export const Cart = () => {
                         <span className='text-xl uppercase font-bold'>Thành tiền</span>
                         <span className='text-xl font-bold'>{VND.format(totalPrice)}</span>
                     </div>
-                    <Link to='/checkout'
-                        className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
-                        Tiến hành thanh toán
-                    </Link>
+                    {
+                        totalPrice > 0 ? (
+                            isAuth ? (
+                                <Link to='/checkout'
+                                    className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
+                                    Tiến hành thanh toán
+                                </Link>
+                            ) : (
+                                <Link to='/login'
+                                    className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
+                                    Đăng nhập để thanh toán
+                                </Link>
+                            )
+                        )
+                            :
+                            (
+                                <Link to='/'
+                                    className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
+                                    Trở về trang chủ
+                                </Link>
+                            )
+                    }
                 </div>
             </div>
         </div>

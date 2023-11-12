@@ -3,19 +3,22 @@ import moment from 'moment';
 import sha256 from 'js-sha256';
 import Breadcrumb from './Breadcrumb';
 import { isMobile } from 'react-device-detect';
-import { Empty, Spin } from 'antd';
-import { Link } from 'react-router-dom';
+import { Empty, Spin, Space, Form, Input, Button, Select, Radio, message } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaHome, FaCreditCard, FaTruck, FaCheckSquare, FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
-import { fetchProductsWithDescription } from '../../features/product/path-api';
+import { updateProductFromCart, deleteProductFromCart } from '../../features/cart/path-api';
 import { apiProvince } from '../../api/api-province';
 import { openPayment } from '../../api/paymentClient.ts';
 
 export const Checkout = () => {
+    const navigate = useNavigate();
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
-    const { cart, productCart } = useSelector(state => state.cart);
+    const { isAuth } = useSelector(state => state.login);
+    const { profile } = useSelector(state => state.user);
+    const { cart, productCart, totalPrice, quantityCart } = useSelector(state => state.cart);
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
     const [quantity, setQuantity] = useState(0);
     const [timeStamp, setTimeStamp] = useState('');
@@ -24,19 +27,56 @@ export const Checkout = () => {
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [ward, setWard] = useState('');
     const [street, setStreet] = useState('');
+    const [shipping, setShipping] = useState(0);
 
     const [infoOrder, setInfoOrder] = useState({
-        orders: '',
-        quantity: quantity,
+        // orders: '',
+        cartId: '',
         buyerEmail: '',
         buyerLastNm: '',
         buyerFirstNm: '',
         buyerPhone: '',
         buyerAddr: '',
-        payment: '',
-        delivery: '',
-        items: JSON.parse(localStorage.getItem('cart')),
+        paymentMethod: '',
+        deliveryMethod: '',
+        // items: JSON.parse(localStorage.getItem('cart')),
     });
+
+    // get cart_id from profile
+    useEffect(() => {
+        if (profile) {
+            setInfoOrder(prevInfoOrder => ({
+                ...prevInfoOrder,
+                cartId: profile.cart._id
+            }));
+        }
+    }, [profile]);
+
+    // check is logged in, if not, navigate to home page
+    useEffect(() => {
+        if (!isAuth) {
+            message.info('Vui lòng đăng nhập để thanh toán!');
+            navigate('/');
+        }
+    }, [isAuth]);
+
+
+    const getSpending = () => {
+        let discount = 0;
+        if (profile?.spending >= 1000000) {
+            discount = 0.1;
+        }
+        else if (profile?.speding >= 500000) {
+            discount = 0.05;
+        }
+        else if (profile?.speding >= 100000) {
+            discount = 0.02;
+        }
+        else {
+            discount = 0;
+        }
+        return discount;
+    };
 
     const updateQuantity = (newQuantity) => {
         setInfoOrder(prevInfoOrder => ({
@@ -58,40 +98,17 @@ export const Checkout = () => {
         };
     }, []);
 
-    // get all product
-    // useEffect(() => {
-    //     dispatch(fetchProductsWithDescription({ currentPage, pageSize: 999, sort }));
-    // }, [dispatch, currentPage, pageSize, sort]);
-
-
-
-    // useEffect(() => {
-    //     // Lấy dữ liệu giỏ hàng từ localStorage khi component được tạo
-    //     const savedCart = localStorage.getItem('cart');
-    //     if (savedCart) {
-    //         setCart(JSON.parse(savedCart));
-    //     }
-
-    // }, [setCart]);
-
-    useEffect(() => {
-        // get quantity of cart
-        const getQuantity = () => {
-            let quantity = 0;
-            cart?.forEach(item => {
-                quantity += item.quantity;
-            });
-            setQuantity(quantity);
-        };
-        getQuantity();
-        updateQuantity(quantity);
-    }, [cart]);
-
-    const removeCartItem = (index) => {
-        const updatedCart = [...cart];
-        updatedCart.splice(index, 1);
-        dispatch(getCart(updatedCart));
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+    const removeCartItem = (index, id) => {
+        const newCart = [...cart];
+        newCart.splice(index, 1);
+        // setCart(newCart);
+        dispatch(getCart(newCart));
+        if (isAuth) {
+            dispatch(deleteProductFromCart({ id }));
+        }
+        else {
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        }
     };
 
     const updateCartItemQuantity = (itemId, newQuantity) => {
@@ -99,8 +116,14 @@ export const Checkout = () => {
             cartItem.product_id === itemId ? { ...cartItem, quantity: newQuantity } : cartItem
         );
 
+        // setCart(updatedCart);
         dispatch(getCart(updatedCart));
-        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        if (isAuth) {
+            dispatch(updateProductFromCart({ products: updatedCart }));
+        }
+        else {
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+        }
     };
 
     // save info of order
@@ -159,25 +182,23 @@ export const Checkout = () => {
     }, []);
 
     const handleProvinceChange = (e) => {
-        const provinceCode = e.target.value;
+        const provinceCode = e;
         setSelectedProvince(provinceCode);
         setSelectedDistrict(null);
     };
 
     const handleDistrictChange = (e) => {
-        const districtCode = e.target.value;
+        const districtCode = e;
         setSelectedDistrict(districtCode);
     };
 
     const handleWardChange = (e) => {
-        setWard(e.target.value);
+        setWard(e);
     };
 
     const handleStreetChange = (e) => {
         setStreet(e.target.value);
     };
-
-
 
     //get timestamp
     useEffect(() => {
@@ -211,11 +232,12 @@ export const Checkout = () => {
 
     // handle payment
 
-    const handlePayment = async () => {
+    const handlePayment = async (values) => {
+        console.log("values: ", values);
+        localStorage.setItem('infoOrder', JSON.stringify(infoOrder));
         const formattedTimeStamp = await moment().format('YYYYMMDDHHmmss');
         setTimeStamp(formattedTimeStamp);
         // save info order to localStorage
-        localStorage.setItem('infoOrder', JSON.stringify(infoOrder));
         openPayment(1, "https://sandbox.megapay.vn/");
     };
     // const order = JSON.parse(localStorage.getItem('infoOrder'));
@@ -228,335 +250,410 @@ export const Checkout = () => {
                 <div className="breadcrumb bg-gray-100 px-3 py-[2px]">
                     <Breadcrumb />
                 </div>
-                <Link to="/" className="block w-full text-sm text-blue-500 my-5 pl-5">
+                {/* <Link to="/" className="block w-full text-sm text-blue-500 my-5 pl-5">
                     Đã có tài khoản? <span className='font-semibold'>Đăng nhập</span>
-                </Link>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                    <form
-                        id="megapayForm" name="megapayForm" method="POST"
-                        className="py-2"
-                    >
-                        <input type="hidden" name="merId" value={merId} />
-                        <input type="hidden" name="currency" value="VND" />
-                        <input type="hidden" name="amount" value={amount} />
-                        <input type="hidden" name="invoiceNo" value={invoiceNo} />
-                        <input type="hidden" name="goodsNm" value="Test Payment" />
-                        <input type="hidden" name="payType" value="NO" />
-                        <input type="hidden" name="callBackUrl" value="http://localhost:3000/callback" />
-                        <input type="hidden" name="notiUrl" value="http://localhost:3000/callback" />
-                        <input type="hidden" name="reqDomain" value="http://localhost:3000/" />
-                        <input type="hidden" name="fee" value="0" />
-                        <input type="hidden" name="description" value="testsystem" />
-                        <input type="hidden" name="userLanguage" value="VN" />
-                        <input type="hidden" name="timeStamp" value={timeStamp} />
-                        <input type="hidden" name="merTrxId" value={merTrxId} />
-                        <input type="hidden" name="windowColor" value="#ef5459" />
-                        <input type="hidden" name="windowType" value={windowType} />
-                        <input type="hidden" name="merchantToken" value={merchantToken} />
-                        <input
-                            type="hidden"
-                            name="buyerAddr"
-                            value={`${street}, ${ward}, ${selectedDistrict}, ${selectedProvince}`}
-                        />
+                </Link> */}
+                <Form
+                    id="megapayForm" name="megapayForm" method="POST"
+                    className="py-2"
+                    onFinish={handlePayment}
+                    layout='vertical'
+                >
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
-                        <div className='flex items-center text-[22px]'>
-                            <FaHome className="text-[26px]" />
-                            <span className='ml-2'>Thông tin nhận hàng</span>
-                        </div>
-                        <div className="my-2">
-                            <div className="w-full mb-8">
-                                <input
+                        <div>
+                            <input type="hidden" name="merId" value={merId} />
+                            <input type="hidden" name="currency" value="VND" />
+                            <input type="hidden" name="amount" value={amount} />
+                            <input type="hidden" name="invoiceNo" value={invoiceNo} />
+                            <input type="hidden" name="goodsNm" value="Test Payment" />
+                            <input type="hidden" name="payType" value="NO" />
+                            <input type="hidden" name="callBackUrl" value="http://localhost:3000/callback" />
+                            <input type="hidden" name="notiUrl" value="http://localhost:3000/callback" />
+                            <input type="hidden" name="reqDomain" value="http://localhost:3000/" />
+                            <input type="hidden" name="fee" value="0" />
+                            <input type="hidden" name="description" value="testsystem" />
+                            <input type="hidden" name="userLanguage" value="VN" />
+                            <input type="hidden" name="timeStamp" value={timeStamp} />
+                            <input type="hidden" name="merTrxId" value={merTrxId} />
+                            <input type="hidden" name="windowColor" value="#ef5459" />
+                            <input type="hidden" name="windowType" value={windowType} />
+                            <input type="hidden" name="merchantToken" value={merchantToken} />
+                            <input
+                                type="hidden"
+                                name="buyerAddr"
+                                value={`${street}, ${ward}, ${selectedDistrict}, ${selectedProvince}`}
+                            />
+                            <Form.Item
+                                label="Email"
+                                name="buyerEmail"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Vui lòng nhập email!',
+                                    },
+                                    {
+                                        type: 'email',
+                                        message: 'Email không hợp lệ!',
+                                    },
+                                ]}
+                            >
+                                <Input
                                     type="text"
                                     onChange={handleInputChange}
                                     name='buyerEmail'
-                                    className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none"
                                     placeholder='Email'
                                 />
-                                <span className="text-xs text-red-400 italic hidden">Đây là thông tin bắt buộc</span>
+                            </Form.Item>
+                            <div
+                                className='flex items-center'
+                            >
+
+                                <Form.Item
+                                    label="Họ"
+                                    name="buyerLastNm"
+                                    className='w-1/2 mr-2'
+                                    rules={[
+                                        {
+                                            required: true,
+                                            message: 'Vui lòng nhập họ!'
+                                        }
+                                    ]}
+                                >
+                                    <Input
+                                        type="text"
+                                        onChange={handleInputChange}
+                                        name='buyerLastNm'
+                                        placeholder='Họ'
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Tên"
+                                    name="buyerFirstNm"
+                                    className='w-1/2'
+                                    rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+                                >
+                                    <Input
+                                        type="text"
+                                        onChange={handleInputChange}
+                                        name='buyerFirstNm'
+                                        placeholder='Tên'
+                                    />
+                                </Form.Item>
                             </div>
-                            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-5">
-                                <input
-                                    type="text"
-                                    onChange={handleInputChange}
-                                    name='buyerLastNm'
-                                    className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none"
-                                    placeholder='Họ'
-                                />
-                                <input
-                                    type="text"
-                                    onChange={handleInputChange}
-                                    name='buyerFirstNm'
-                                    className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none"
-                                    placeholder='Tên'
-                                />
-                                <input
+                            <Form.Item
+                                label="Số điện thoại"
+                                name="buyerPhone"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: 'Vui lòng nhập số điện thoại!'
+                                    },
+                                    {
+                                        pattern: /(84|0[3|5|7|8|9])+([0-9]{8})\b/,
+                                        message: 'Số điện thoại không hợp lệ!'
+                                    }
+                                ]}
+                            >
+                                <Input
                                     type="text"
                                     onChange={handleInputChange}
                                     name="buyerPhone"
-                                    className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none"
                                     placeholder='Số điện thoại'
                                 />
-                                <select
-                                    name='buyerCity'
-                                    className="w-full border border-gray-300 focus:border-black px-2 py-3 text-sm text-gray-500 outline-none"
-                                    onChange={handleProvinceChange}
-                                    value={selectedProvince || ''}
-                                >
-                                    <option value="">Tỉnh/Thành</option>
-                                    {provinces.map((province) => (
-                                        <option key={province.code} value={province.name}>
-                                            {province.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="w-full border border-gray-300 focus:border-black px-2 py-3 text-sm text-gray-500 outline-none"
-                                    onChange={handleDistrictChange}
-                                    value={selectedDistrict || ''}
-                                >
-                                    <option value="">Quận/Huyện</option>
-                                    {selectedProvince &&
-                                        provinces
-                                            .find((province) => province.name === selectedProvince)
-                                            .districts.map((district) => (
-                                                <option key={district.code} value={district.name}>
-                                                    {district.name}
-                                                </option>
-                                            ))}
-                                </select>
-                                <select
-                                    value={ward} onChange={handleWardChange}
-                                    className="w-full border border-gray-300 focus:border-black px-2 py-3 text-sm text-gray-500 outline-none"
-                                >
-                                    <option value="">Phường/Xã</option>
-                                    {selectedDistrict &&
-                                        provinces
-                                            .reduce((prev, province) => prev.concat(province.districts), [])
-                                            .find((district) => district.name === selectedDistrict)
-                                            .wards.map((ward) => (
-                                                <option key={ward.code} value={ward.name}>
-                                                    {ward.name}
-                                                </option>
-                                            ))}
-                                </select>
-                                <input
-                                    type="text"
-                                    value={street}
-                                    onChange={handleStreetChange}
-                                    className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none"
-                                    placeholder='Số nhà, tên đường'
-                                />
-                            </div>
-                        </div>
-                        <div className='flex items-center text-[22px] mt-10'>
-                            <FaCreditCard className="text-[26px]" />
-                            <span className='ml-2'>Phương thức thanh toán</span>
-                        </div>
-                        <div className="my-2">
-                            <div className="flex">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    id="payment2"
-                                    value={"Thanh toán trực tuyến"}
-                                    onChange={handleInputChange}
-                                />
-                                <label htmlFor="payment2" className="block w-full px-3 py-[10px] text-base text-left">Thanh toán trực tuyến</label>
-                            </div>
-                            <div className="flex">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    id="payment1"
-                                    value={"Thanh toán khi nhận hàng"}
-                                    onChange={handleInputChange}
-                                />
-                                <label htmlFor="payment1" className="block w-full px-3 py-[10px] text-base text-left">Thanh toán khi nhận hàng</label>
-                            </div>
-                        </div>
-                        <div className='flex items-center text-[22px]'>
-                            <FaTruck className="text-[26px]" />
-                            <span className='ml-2'>Hình thức giao hàng</span>
-                        </div>
-                        <div className="my-2">
-                            <table className='w-full'>
-                                <tbody>
-                                    <tr>
-                                        <td className="py-2 border text-center">
-                                            <input
-                                                type="radio"
-                                                name="delivery"
-                                                id="delivery1"
-                                                className='w-10'
-                                                value={"Giao hàng tiêu chuẩn"}
-                                                onChange={handleInputChange}
-                                            />
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <span className="block w-full px-3 py-[10px] text-base">0đ</span>
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <span className="block w-full px-3 py-[10px] text-base">Free</span>
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <label htmlFor="delivery1" className="block w-full px-3 py-[10px] text-base">Giao hàng tiêu chuẩn</label>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td className="py-2 border text-center">
-                                            <input
-                                                type="radio"
-                                                name="delivery"
-                                                id="delivery2"
-                                                className='w-10'
-                                                value={"Giao hàng nhanh"}
-                                                onChange={handleInputChange}
-                                            />
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <span className="block w-full px-3 py-[10px] text-base">40.000đ</span>
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <span className="block w-full px-3 py-[10px] text-base">Fast</span>
-                                        </td>
-                                        <td className="py-2 border text-center">
-                                            <label htmlFor="delivery2" className="block w-full px-3 py-[10px] text-base">Giao hàng nhanh</label>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="note mt-6">
-                            <div className="flex items-center text-[13px] font-semibold">
-                                <span className='ml-2'>Quý khách hàng có nhu cầu gói quà miễn phí, vui lòng điền vào phần ghi chú bên dưới</span>
-                            </div>
-                            <div className="my-2">
-                                <textarea name="" id="" cols="30" rows="4" className="block w-full px-3 py-[10px] text-sm border border-gray-300 focus:border-black outline-none" placeholder='Ghi chú đơn hàng (không bắt buộc)' />
-                            </div>
-                        </div>
-                    </form>
-                    <div className="py-2">
-                        <div className='flex items-center text-[22px]'>
-                            <FaCheckSquare className="text-2xl" />
-                            <span className='ml-2'>Thông tin đơn hàng</span>
-                        </div>
-                        <div className='flex items-center text-xl my-4'>
-                            <span className='ml-2'>{quantity} Sản phẩm trong giỏ</span>
-                        </div>
-                        <table className="w-full">
-                            <thead>
-                                <tr>
-                                    <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Tên sản phẩm</th>
-                                    <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Số lượng</th>
-                                    <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Tổng tiền</th>
-                                    <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Xóa</th>
-                                </tr>
-                            </thead>
-                        </table>
-                        <div className="max-h-[300px] overflow-y-auto">
-                            <table className="w-full">
-                                <tbody>
-                                    {
-                                        loading ? (
-                                            <tr>
-                                                <td className='text-center'>
-                                                    <Spin />
-                                                </td>
+                            </Form.Item>
+                            <div
+                                className='flex items-center'
+                            >
 
-                                            </tr>
-                                        ) : (
-                                            cart?.length === 0 ?
-                                                (
-                                                    <tr><td><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /></td></tr>
-                                                )
-                                                :
-                                                productCart.map((product, index) => (
-                                                    <tr key={index}>
-                                                        <td className="py-2 border-b-2 text-center w-80">
-                                                            <div className="flex items-center">
-                                                                <div className="w-[80px] h-[80px]">
-                                                                    <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
-                                                                </div>
-                                                                <div className="mx-2 max-w-[220px]">
-                                                                    <div className="text-sm font-semibold product-name__checkout">{product.name}</div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-2 border-b-2 text-center">
-                                                            <div className="flex items-center justify-between w-28">
-                                                                <div
-                                                                    onClick={() => updateCartItemQuantity(product._id, Math.max(1, getQuantityOfProduct(product._id) - 1))}
-                                                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer"
-                                                                >
-                                                                    <FaMinus />
-                                                                </div>
-                                                                <div className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer mx-2">{getQuantityOfProduct(product._id)}</div>
-                                                                <div
-                                                                    onClick={() => updateCartItemQuantity(product._id, getQuantityOfProduct(product._id) + 1)}
-                                                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer"
-                                                                >
-                                                                    <FaPlus />
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-2 border-b-2 text-center">
-                                                            <div className="text-sm font-bold text-red-500">{VND.format(Number(product.price_discount))}</div>
-                                                            <div className="text-xs font-bold text-gray-600 line-through">{VND.format(Number(product.price))}</div>
-                                                        </td>
-                                                        <td className="py-2 border-b-2 text-center">
-                                                            <div className="flex items-center justify-center">
-                                                                <div
-                                                                    onClick={() => removeCartItem(index)}
-                                                                    className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer">
-                                                                    <FaTrashAlt />
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                        )
-                                    }
-                                </tbody>
-                            </table>
+                                <Form.Item
+                                    label="Tỉnh/Thành"
+                                    name='buyerCity'
+                                    className='w-1/2 mr-2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành!' }]}
+                                >
+                                    <Select
+                                        name='buyerCity'
+                                        onChange={handleProvinceChange}
+                                        placeholder='Tỉnh/Thành'
+                                        value={selectedProvince || ''}
+                                        options={provinces.map((province) => (
+                                            {
+                                                key: province.code,
+                                                label: province.name,
+                                                value: province.name
+                                            }
+                                        ))}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Quận/Huyện"
+                                    name='buyerDistrict'
+                                    className='w-1/2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn quận/huyện!' }]}
+                                >
+                                    <Select
+                                        name='buyerDistrict'
+                                        onChange={handleDistrictChange}
+                                        placeholder='Quận/Huyện'
+                                        value={selectedDistrict || ''}
+                                        options={selectedProvince &&
+                                            provinces
+                                                .find((province) => province.name === selectedProvince)
+                                                .districts.map((district) => (
+                                                    {
+                                                        key: district.code,
+                                                        label: district.name,
+                                                        value: district.name
+                                                    }
+                                                ))}
+                                    />
+                                </Form.Item>
+                            </div>
+                            <div
+                                className='flex items-center'
+                            >
+                                <Form.Item
+                                    label="Phường/Xã"
+                                    name='buyerWard'
+                                    className='w-1/2 mr-2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn phường/xã!' }]}
+                                >
+                                    <Select
+                                        name='buyerWard'
+                                        onChange={handleWardChange}
+                                        placeholder='Phường/Xã'
+                                        value={ward}
+                                        options={selectedDistrict &&
+                                            provinces
+                                                .reduce((prev, province) => prev.concat(province.districts), [])
+                                                .find((district) => district.name === selectedDistrict)
+                                                .wards.map((ward) => (
+                                                    {
+                                                        key: ward.code,
+                                                        label: ward.name,
+                                                        value: ward.name
+                                                    }
+                                                ))}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Số nhà, tên đường"
+                                    name='buyerStreet'
+                                    className='w-1/2'
+                                    rules={[{ required: true, message: 'Vui lòng nhập số nhà, tên đường!' }]}
+                                >
+                                    <Input
+                                        type="text"
+                                        value={street}
+                                        onChange={handleStreetChange}
+                                        placeholder='Số nhà, tên đường'
+                                    />
+                                </Form.Item>
+
+                            </div>
+                            {/* <Form.Item
+                            label="Ghi chú"
+                            name='buyerNote'
+                        >
+                            <Input.TextArea
+                                name=""
+                                id=""
+                                cols="30"
+                                rows="4"
+                                placeholder='Ghi chú đơn hàng (không bắt buộc)'
+                            />
+                        </Form.Item> */}
+                            <Form.Item
+                                label="Phương thức thanh toán"
+                                name='paymentMethod'
+                                rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán!' }]}
+                            >
+                                <Radio.Group
+                                    onChange={handleInputChange}
+                                    name="paymentMethod"
+                                >
+                                    <Radio value={"Thanh toán trực tuyến"}>Thanh toán trực tuyến</Radio>
+                                    <Radio value={"Thanh toán khi nhận hàng"}>Thanh toán khi nhận hàng</Radio>
+                                </Radio.Group>
+                            </Form.Item>
+                            <Form.Item
+                                label="Hình thức giao hàng"
+                                name='deliveryMethod'
+                                rules={[{ required: true, message: 'Vui lòng chọn hình thức giao hàng!' }]}
+                            >
+                                <Radio.Group
+                                    onChange={handleInputChange}
+                                    name="deliveryMethod"
+                                >
+                                    <Radio
+                                        value={"Giao hàng tiêu chuẩn"}
+                                        onClick={() => setShipping(20000)}
+                                    >
+                                        Giao hàng tiêu chuẩn
+                                    </Radio>
+                                    <Radio
+                                        value={"Giao hàng nhanh"}
+                                        onClick={() => setShipping(40000)}
+                                    >
+                                        Giao hàng nhanh
+                                    </Radio>
+                                </Radio.Group>
+                            </Form.Item>
                         </div>
                         <div className="py-2">
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-sm">Tổng số lượng sản phẩm:</div>
-                                <div className="text-sm">{quantity}</div>
+                            <div className='flex items-center text-[22px]'>
+                                <FaCheckSquare className="text-2xl" />
+                                <span className='ml-2'>Thông tin đơn hàng</span>
                             </div>
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-sm">Tổng tiền:</div>
-                                <div className="text-sm">{VND.format(getTotal())}</div>
+                            <div className='flex items-center text-xl my-4'>
+                                <span className='ml-2'>{quantityCart} Sản phẩm trong giỏ</span>
                             </div>
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-sm">Giảm giá:</div>
-                                <div className="text-sm">0đ</div>
+                            <table className="w-full">
+                                <thead>
+                                    <tr>
+                                        <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Tên sản phẩm</th>
+                                        <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Số lượng</th>
+                                        <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Tổng tiền</th>
+                                        <th className="py-2 text-right text-sm border-b-2 font-normal uppercase">Xóa</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                            <div className="max-h-[300px] overflow-y-auto">
+                                <table className="w-full">
+                                    <tbody>
+                                        {
+                                            loading ? (
+                                                <tr>
+                                                    <td className='text-center'>
+                                                        <Spin />
+                                                    </td>
+
+                                                </tr>
+                                            ) : (
+                                                cart?.length === 0 ?
+                                                    (
+                                                        <tr><td><Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /></td></tr>
+                                                    )
+                                                    :
+                                                    productCart.map((product, index) => (
+                                                        <tr key={index}>
+                                                            <td className="py-2 border-b-2 text-center w-80">
+                                                                <div className="flex items-center">
+                                                                    <div className="w-[80px] h-[80px]">
+                                                                        <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
+                                                                    </div>
+                                                                    <div className="mx-2 max-w-[220px]">
+                                                                        <div className="text-sm font-semibold product-name__checkout">{product.name}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-2 border-b-2 text-center">
+                                                                <div className="flex items-center justify-between w-28">
+                                                                    <div
+                                                                        onClick={() => updateCartItemQuantity(product._id, Math.max(1, getQuantityOfProduct(product._id) - 1))}
+                                                                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer"
+                                                                    >
+                                                                        <FaMinus />
+                                                                    </div>
+                                                                    <div className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer mx-2">{getQuantityOfProduct(product._id)}</div>
+                                                                    <div
+                                                                        onClick={() => updateCartItemQuantity(product._id, getQuantityOfProduct(product._id) + 1)}
+                                                                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer"
+                                                                    >
+                                                                        <FaPlus />
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-2 border-b-2 text-center">
+                                                                {
+                                                                    product.price_discount === product.price ?
+                                                                        <div className="text-sm font-bold text-red-500">{VND.format(Number(product.price_discount))}</div>
+
+                                                                        :
+                                                                        <div>
+                                                                            <div className="text-sm font-bold text-red-500">{VND.format(Number(product.price_discount))}</div>
+                                                                            <div className="text-xs font-bold text-gray-600 line-through">{VND.format(Number(product.price))}</div>
+                                                                        </div>
+
+                                                                }
+                                                            </td>
+                                                            <td className="py-2 border-b-2 text-center">
+                                                                <div className="flex items-center justify-center">
+                                                                    <div
+                                                                        onClick={() => removeCartItem(index, product._id)}
+                                                                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full cursor-pointer">
+                                                                        <FaTrashAlt />
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                            )
+                                        }
+                                    </tbody>
+                                </table>
                             </div>
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-sm">Phí vận chuyển:</div>
-                                <div className="text-sm">0đ</div>
-                            </div>
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-2xl font-medium text-red-500">Tổng thanh toán:</div>
-                                <div className="text-2xl font-medium text-red-500">{VND.format(getTotal())}</div>
-                            </div>
-                            <div className="w-full flex items-center justify-between my-5">
-                                <div className="text-sm w-1/3">Bạn có mã khuyến mãi?</div>
-                                <div className='flex border border-gray-300 w-2/3'>
-                                    <input className='border-none p-2 outline-none text-[13px] flex-1' type="text" placeholder='Nhập mã khuyến mãi' />
-                                    <button className='bg-yellow-300 hover:bg-[#df494a] hover:text-white text-sm uppercase font-semibold px-3 py-1'>nhập</button>
+                            <div className="py-2">
+                                <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-sm">Tổng số lượng sản phẩm:</div>
+                                    <div className="text-sm">{quantityCart}</div>
                                 </div>
+                                <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-sm">Tổng tiền:</div>
+                                    <div className="text-sm">{VND.format(totalPrice)}</div>
+                                </div>
+                                <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-sm">
+                                        Giảm giá ({getSpending() * 100}%):
+                                    </div>
+                                    <div className="text-sm">
+                                        {
+                                            profile ?
+                                                VND.format(getSpending() * totalPrice)
+                                                :
+                                                VND.format(0)
+                                        }
+                                    </div>
+                                </div>
+                                <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-sm">Phí vận chuyển:</div>
+                                    <div className="text-sm">
+                                        {
+                                            shipping === 0 ?
+                                                VND.format(0)
+                                                :
+                                                VND.format(shipping)
+                                        }
+                                    </div>
+                                </div>
+                                <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-2xl font-medium text-red-500">Tổng thanh toán:</div>
+                                    <div className="text-2xl font-medium text-red-500">{VND.format(totalPrice - (getSpending() * totalPrice) + shipping)}</div>
+                                </div>
+                                {/* <div className="w-full flex items-center justify-between my-5">
+                                    <div className="text-sm w-1/3">Bạn có mã khuyến mãi?</div>
+                                    <div className='flex border border-gray-300 w-2/3'>
+                                        <input className='border-none p-2 outline-none text-[13px] flex-1' type="text" placeholder='Nhập mã khuyến mãi' />
+                                        <button className='bg-yellow-300 hover:bg-[#df494a] hover:text-white text-sm uppercase font-semibold px-3 py-1'>nhập</button>
+                                    </div>
+                                </div> */}
+                                <Form.Item>
+                                    <button
+                                        disabled={loading}
+                                        type='primary'
+                                        htmlType='submit'
+                                        className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out"
+                                    >
+                                        Thanh toán
+                                    </button>
+                                </Form.Item>
                             </div>
-                            <button
-                                disabled={loading}
-                                onClick={() => { handlePayment() }}
-                                className="bg-blue-500 hover:border border-blue-500 text-center text-white font-semibold text-xl uppercase block w-full my-8 py-4 hover:bg-white hover:text-gray-600 border hover:border-gray-600 transition-colors duration-300 ease-in-out">
-                                thanh toán
-                            </button>
                         </div>
                     </div>
-                </div>
+                </Form>
             </div>
         </>
     )
 }
+

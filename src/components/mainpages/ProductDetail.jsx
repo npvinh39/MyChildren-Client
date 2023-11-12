@@ -110,22 +110,6 @@ export const ProductDetail = ({ match }) => {
         }
     };
 
-    const updateCartItem = (index, updatedItem) => {
-        const oldCart = localStorage.getItem('cart');
-        const newCart = JSON.parse(oldCart);
-        newCart[index] = updatedItem;
-        dispatch(getCart(newCart));
-        localStorage.setItem('cart', JSON.stringify(newCart));
-    };
-
-    const removeCartItem = (index) => {
-        const oldCart = localStorage.getItem('cart');
-        const newCart = JSON.parse(oldCart);
-        newCart.splice(index, 1);
-        dispatch(getCart(newCart));
-        localStorage.setItem('cart', JSON.stringify(newCart));
-    };
-
     //quantity
     const [quantity, setQuantity] = useState(1);
     const handleQuantityChange = (value) => {

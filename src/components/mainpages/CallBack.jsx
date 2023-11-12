@@ -2,46 +2,51 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Result, Spin, message } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
-import { apiOrder } from '../../api/api-order';
+// import { apiOrder } from '../../api/api-order';
 import queryString from 'query-string';
+import { useDispatch, useSelector } from 'react-redux';
+import { createOrder } from '../../features/order/path-api';
 
 const infoOrder = JSON.parse(localStorage.getItem('infoOrder'));
 export const CallBack = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = queryString.parse(location.search);
+    const dispatch = useDispatch();
+    const { loading } = useSelector(state => state.order);
 
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         (async () => {
             if (!infoOrder) navigate('/');
             if (queryParams.resultMsg === 'SUCCESS' && infoOrder) {
                 const order = {
+                    id: infoOrder.cartId,
                     code_order: queryParams.invoiceNo,
-                    status: "Chờ xác nhận",
-                    payment_status: "Đã thanh toán",
-                    shipping: 0,
-                    discount: 0,
-                    total: parseInt(queryParams.amount),
-                    delivery_method: "Hỏa tốc",
                     customer: infoOrder.buyerLastNm + ' ' + infoOrder.buyerFirstNm,
-                    shipping_address: infoOrder.buyerAddr,
                     phone: infoOrder.buyerPhone,
                     email: infoOrder.buyerEmail,
-                    items: JSON.stringify(infoOrder.items),
-                    quantity: infoOrder.quantity
+                    shipping: infoOrder.deliveryMethod === 'Giao hàng nhanh' ? 40000 : 20000,
+                    payment_method: infoOrder.paymentMethod,
+                    payment_status: infoOrder.paymentMethod === 'Thanh toán khi nhận hàng' ? 'Chưa thanh toán' : 'Đã thanh toán',
+                    delivery_method: infoOrder.deliveryMethod,
+                    address: infoOrder.buyerAddr,
+                    total: parseInt(queryParams.amount),
+                    // items: JSON.stringify(infoOrder.items),
+                    // quantity: infoOrder.quantity
                 };
                 try {
-                    setLoading(true);
-                    await apiOrder.add(order);
-                    setLoading(false);
-                    localStorage.removeItem('cart');
+                    // setLoading(true);
+                    // await apiOrder.add(order);
+                    // setLoading(false);
+                    dispatch(createOrder(order));
+                    // localStorage.removeItem('cart');
                     localStorage.removeItem('infoOrder');
 
                 } catch (error) {
                     console.log('error', error)
-                    setLoading(false);
+                    // setLoading(false);
                 }
             }
         })()

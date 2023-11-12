@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { onLogin, onLogout } from '../../features/login/path-api';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { fetchProfile } from '../../features/user/path-api';
-import { addToCart, updateProductFromCart } from '../../features/cart/path-api';
+import { addToCart, deleteProductFromCart } from '../../features/cart/path-api';
 import { getCart, getProductCart, getTotalPrice, getQuantityCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
@@ -81,7 +81,7 @@ export const Header = () => {
         dispatch(getProductCart(productCart));
         dispatch(getTotalPrice(getTotal()));
         dispatch(getQuantityCart(getQuantity()));
-    }, [cart, products, dispatch]);
+    }, [cart, products, totalPrice, quantityCart, dispatch]);
 
     // Modal logout
     const navigate = useNavigate();
@@ -111,11 +111,17 @@ export const Header = () => {
         setIsSearch(false);
     };
 
-    const removeCartItem = (index) => {
-        const newCart = cart.filter((item, i) => i !== index);
+    const removeCartItem = (index, id) => {
+        const newCart = [...cart];
+        newCart.splice(index, 1);
         // setCart(newCart);
         dispatch(getCart(newCart));
-        localStorage.setItem('cart', JSON.stringify(newCart));
+        if (isAuth) {
+            dispatch(deleteProductFromCart({ id }));
+        }
+        else {
+            localStorage.setItem('cart', JSON.stringify(newCart));
+        }
     };
 
     // get quantity of cart
@@ -527,7 +533,7 @@ export const Header = () => {
                                                             </div>
                                                             <div className="cart-list__item__action">
                                                                 <button
-                                                                    onClick={() => removeCartItem(index)}
+                                                                    onClick={() => removeCartItem(index, product._id)}
                                                                     className="hover:bg-red-500 hover:text-white transition-all rounded p-1"
                                                                 >
                                                                     <RiCloseLine className='text-2xl' />
@@ -548,10 +554,13 @@ export const Header = () => {
                                             className="bg-blue-500 border border-blue-500 text-center text-white w-full font-bold text-sm capitalize py-2 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
                                             Xem giỏ hàng
                                         </Link>
-                                        <Link to='/checkout'
-                                            className="bg-blue-500 border border-blue-500 text-center text-white w-full font-bold text-sm capitalize py-2 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
-                                            Thanh toán
-                                        </Link>
+                                        {
+                                            isAuth &&
+                                            <Link to='/checkout'
+                                                className="bg-blue-500 border border-blue-500 text-center text-white w-full font-bold text-sm capitalize py-2 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
+                                                Thanh toán
+                                            </Link>
+                                        }
                                     </div>
                                 </div>
                             </div>

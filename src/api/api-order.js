@@ -20,7 +20,8 @@ export const apiOrder = {
     },
 
     createOrder: async (params) => {
-        const url = `/order/add/${params.id}`; //user id
+        const url = `/order/add/${params.id}`;
+        console.log("params", params);
         const response = await axiosClient.post(url, params);
         return response;
     },
