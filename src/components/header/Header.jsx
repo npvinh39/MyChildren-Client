@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Empty, Spin, Dropdown, message, Modal } from 'antd';
+import { Drawer, Empty, Spin, Dropdown, message, Modal, Button } from 'antd';
 import {
     UserOutlined,
     LogoutOutlined,
+    AudioOutlined,
+    AudioMutedOutlined
 } from '@ant-design/icons';
 import { RiPhoneFill, RiSearchLine, RiUserLine, RiVipCrownLine, RiShoppingCart2Line, RiCloseLine, RiMenuFill } from "react-icons/ri";
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,8 +16,10 @@ import { addToCart, deleteProductFromCart } from '../../features/cart/path-api';
 import { getCart, getProductCart, getTotalPrice, getQuantityCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 
 export const Header = () => {
+    const [placeholderSearch, setPlaceholderSearch] = useState('Tìm kiếm sản phẩm...');
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
@@ -169,9 +173,33 @@ export const Header = () => {
         return 0;
     };
 
-    // search product
+    // convert speech to text
+    const {
+        transcript,
+        listening,
+        resetTranscript } = useSpeechRecognition();
+
     const [search, setSearch] = useState([]);
     const [searchValue, setSearchValue] = useState('');
+
+    const [isListening, setIsListening] = useState(false);
+
+    const handleListen = () => {
+        SpeechRecognition.startListening({ continuous: true });
+        setIsListening(true);
+        setPlaceholderSearch('Đang lắng nghe...');
+        resetTranscript();
+    };
+
+    const handleStop = () => {
+        SpeechRecognition.stopListening();
+        setSearchValue(transcript.toLowerCase());
+        setPlaceholderSearch('Tìm kiếm sản phẩm...');
+        resetTranscript();
+        setIsListening(false);
+    };
+
+    // search product
     const searchProduct = (e) => {
         e.preventDefault();
         const value = e.target.value.toLowerCase();
@@ -190,23 +218,23 @@ export const Header = () => {
             setIsSearch(false);
 
         }
-    }, [search]);
+    }, [search, searchValue]);
 
 
 
     // fixed menu when scroll
-    window.addEventListener("scroll", function () {
-        const menuFooter = document.getElementById("menu-footer");
-        const threshold = 124; //px;
+    // window.addEventListener("scroll", function () {
+    //     const menuFooter = document.getElementById("menu-footer");
+    //     const threshold = 124; //px;
 
-        if (window.pageYOffset > threshold) {
-            menuFooter.style.position = "fixed";
-            menuFooter.style.top = "0";
-            menuFooter.style.left = "0";
-        } else {
-            menuFooter.style.position = "static";
-        }
-    });
+    //     if (window.pageYOffset > threshold) {
+    //         menuFooter.style.position = "fixed";
+    //         menuFooter.style.top = "0";
+    //         menuFooter.style.left = "0";
+    //     } else {
+    //         menuFooter.style.position = "static";
+    //     }
+    // });
     const [open, setOpen] = useState(false);
     const showDrawer = () => {
         setOpen(true);
@@ -313,13 +341,25 @@ export const Header = () => {
                                 <input
                                     onChange={searchProduct}
                                     type="text"
+                                    value={searchValue}
                                     className="inline w-4/5 pl-4 text-sm flex-1 focus:outline-none"
-                                    placeholder="Tìm kiếm sản phẩm..." />
-                                <button type="submit" className="w-14 md:w-20 xl:w-[100px] bg-[#f7f9fa]">
+                                    placeholder={placeholderSearch} />
+                                {/* <button type="submit" className="w-14 md:w-20 xl:w-[100px] bg-[#f7f9fa]">
                                     <span className="font-bold text-xl text-blue-500">
                                         <RiSearchLine className='w-full' />
                                     </span>
-                                </button>
+                                </button> */}
+                                <div className="bg-[#f7f9fa] flex justify-center items-center">
+                                    {isListening ? (
+                                        <Button onClick={handleStop} className='button-micro-antd' type="primary" shape="circle" icon={<AudioMutedOutlined style={{
+                                            fontSize: '18px',
+                                        }} />} />
+                                    ) : (
+                                        <Button onClick={handleListen} className='button-micro-antd' type="primary" shape="circle" icon={<AudioOutlined style={{
+                                            fontSize: '18px',
+                                        }} />} />
+                                    )}
+                                </div>
                                 {/* modal search */}
                                 {isSearch &&
                                     <div className="modal-search absolute top-11 left-0 w-full h-full z-[101]">

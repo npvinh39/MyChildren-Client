@@ -19,18 +19,27 @@ export const CategoryTree = () => {
         >
             {
                 loading ? <Spin className='text-center' /> :
-                    categories.map((item) => {
-                        return (
-                            <Link
-                                to={`/category/${item._id}`}
-                                // onClick={() => setCategoryHandler(item._id)}
-                                className='block text-left text-base font-normal uppercase cursor-pointer hover:text-red-500 py-2'
-                                key={item._id}
-                            >
-                                {item.name}
-                            </Link>
-                        );
-                    })
+                    <div>
+                        <Link
+                            to={`/category/all`}
+                            className='block text-left text-base font-normal uppercase cursor-pointer hover:text-red-500 py-2'
+                            key="all"
+                        >
+                            Tất cả sản phẩm
+                        </Link>
+                        {categories.map((item) => {
+                            return (
+                                <Link
+                                    to={`/category/${item._id}`}
+                                    // onClick={() => setCategoryHandler(item._id)}
+                                    className='block text-left text-base font-normal uppercase cursor-pointer hover:text-red-500 py-2'
+                                    key={item._id}
+                                >
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
+                    </div>
             }
         </Card>
     );

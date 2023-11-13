@@ -130,3 +130,29 @@ ul.slick-dots li.slick-active button:before {
 button.react-multiple-carousel__arrow {
   z-index: 50;
 }
+
+.button-micro-antd {
+  /* border: 1px solid #1677ff; */
+  margin: 0 12px;
+  text-transform: capitalize;
+  background-color: #fff;
+  color: #1677ff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
