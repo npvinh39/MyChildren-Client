@@ -9,11 +9,13 @@ import { FaHome, FaCreditCard, FaTruck, FaCheckSquare, FaMinus, FaPlus, FaTrashA
 import { useDispatch, useSelector } from 'react-redux';
 import { getCart, getProductCart } from '../../features/cart/cartSlice';
 import { updateProductFromCart, deleteProductFromCart } from '../../features/cart/path-api';
+import { createOrder } from '../../features/order/path-api';
 import { apiProvince } from '../../api/api-province';
 import { openPayment } from '../../api/paymentClient.ts';
 
 export const Checkout = () => {
     const navigate = useNavigate();
+    const [form] = Form.useForm()
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
     const { isAuth } = useSelector(state => state.login);
@@ -181,15 +183,58 @@ export const Checkout = () => {
         getProvince();
     }, []);
 
+    // set fields value when is logged in
+    useEffect(() => {
+        if (profile) {
+            form.setFieldsValue({
+                buyerEmail: profile.email,
+                buyerLastNm: profile.last_name,
+                buyerFirstNm: profile.first_name,
+                buyerPhone: profile.phone,
+                buyerCity: profile.address[0]?.province,
+                buyerDistrict: profile.address[0]?.district,
+                buyerWard: profile.address[0]?.ward,
+                buyerStreet: profile.address[0]?.number_street,
+            });
+            setInfoOrder(prevInfoOrder => ({
+                ...prevInfoOrder,
+                buyerEmail: profile.email,
+                buyerLastNm: profile.last_name,
+                buyerFirstNm: profile.first_name,
+                buyerPhone: profile.phone,
+                buyerAddr: `${profile.address[0]?.number_street}, ${profile.address[0]?.ward}, ${profile.address[0]?.district}, ${profile.address[0]?.province}`,
+            }));
+            setSelectedProvince(profile.address[0]?.province);
+            setSelectedDistrict(profile.address[0]?.district);
+            setWard(profile.address[0]?.ward);
+            setStreet(profile.address[0]?.number_street);
+        }
+    }, [form, profile]);
+
+    // set field address when change province, district, ward
     const handleProvinceChange = (e) => {
         const provinceCode = e;
         setSelectedProvince(provinceCode);
-        setSelectedDistrict(null);
+        form.setFieldsValue({
+            buyerDistrict: '',
+            buyerWard: '',
+        });
+        setInfoOrder(prevInfoOrder => ({
+            ...prevInfoOrder,
+            buyerAddr: '',
+        }));
     };
 
     const handleDistrictChange = (e) => {
         const districtCode = e;
         setSelectedDistrict(districtCode);
+        form.setFieldsValue({
+            buyerWard: '',
+        });
+        setInfoOrder(prevInfoOrder => ({
+            ...prevInfoOrder,
+            buyerAddr: '',
+        }));
     };
 
     const handleWardChange = (e) => {
@@ -233,12 +278,33 @@ export const Checkout = () => {
     // handle payment
 
     const handlePayment = async (values) => {
-        console.log("values: ", values);
-        localStorage.setItem('infoOrder', JSON.stringify(infoOrder));
-        const formattedTimeStamp = await moment().format('YYYYMMDDHHmmss');
-        setTimeStamp(formattedTimeStamp);
         // save info order to localStorage
-        openPayment(1, "https://sandbox.megapay.vn/");
+        localStorage.setItem('infoOrder', JSON.stringify(infoOrder));
+
+        if (values.paymentMethod === "Thanh toán trực tuyến") {
+            const formattedTimeStamp = await moment().format('YYYYMMDDHHmmss');
+            setTimeStamp(formattedTimeStamp);
+            openPayment(1, "https://sandbox.megapay.vn/");
+        }
+        else {
+            const order = {
+                id: infoOrder.cartId,
+                code_order: invoiceNo,
+                customer: infoOrder.buyerLastNm + ' ' + infoOrder.buyerFirstNm,
+                phone: infoOrder.buyerPhone,
+                email: infoOrder.buyerEmail,
+                shipping: infoOrder.deliveryMethod === 'Giao hàng nhanh' ? 40000 : 20000,
+                payment_method: infoOrder.paymentMethod,
+                payment_status: infoOrder.paymentMethod === 'Thanh toán khi nhận hàng' ? 'Chưa thanh toán' : 'Đã thanh toán',
+                delivery_method: infoOrder.deliveryMethod,
+                address: infoOrder.buyerAddr,
+                total: parseInt(amount),
+            };
+            console.log("order: ", order)
+            dispatch(createOrder(order));
+            localStorage.removeItem('infoOrder');
+            navigate('/');
+        }
     };
     // const order = JSON.parse(localStorage.getItem('infoOrder'));
     // console.log("infoOrder: ", order)
@@ -254,6 +320,7 @@ export const Checkout = () => {
                     Đã có tài khoản? <span className='font-semibold'>Đăng nhập</span>
                 </Link> */}
                 <Form
+                    form={form}
                     id="megapayForm" name="megapayForm" method="POST"
                     className="py-2"
                     onFinish={handlePayment}

@@ -80,7 +80,10 @@ export const Header = () => {
         // setProductCart(productCart);
         dispatch(getProductCart(productCart));
         dispatch(getTotalPrice(getTotal()));
-        dispatch(getQuantityCart(getQuantity()));
+        dispatch(getQuantityCart(
+            // check NaN
+            isNaN(getQuantity()) ? 0 : getQuantity()
+        ));
     }, [cart, products, totalPrice, quantityCart, dispatch]);
 
     // Modal logout
