@@ -328,11 +328,11 @@ export const Header = () => {
                         </Drawer>
                         <div className="logo">
                             <Link to="/">
-                                <img className="h-[60px] hidden xl:block"
-                                    src="https://res.cloudinary.com/npvinh/image/upload/v1698772003/MyChildren/logo-MyChildren_ctwqry.png"
+                                <img className="h-[46px] hidden xl:block"
+                                    src="https://res.cloudinary.com/npvinh/image/upload/v1699942082/MyChildren/logoup-MyChildren-01_uujktd.png"
                                     alt="logo" />
-                                <img className="h-[40px] block xl:hidden mx-5"
-                                    src="https://u6wdnj9wggobj.vcdn.cloud/media/favicon/stores/1/mkd-logo-mobile_1.png"
+                                <img className="h-[36px] block xl:hidden mx-5"
+                                    src="https://res.cloudinary.com/npvinh/image/upload/v1699941419/MyChildren/logo-MC_fowelx.png"
                                     alt="logo" />
                             </Link>
                         </div>
@@ -432,9 +432,11 @@ export const Header = () => {
                                                         key: '1',
                                                         label: 'Thông tin tài khoản',
                                                         icon: <UserOutlined />,
-                                                        onClick: () => {
-                                                            message.info('Thông tin tài khoản');
-                                                        },
+                                                        label: (
+                                                            <Link to='/profile/info'>
+                                                                <span>Thông tin tài khoản</span>
+                                                            </Link>
+                                                        )
                                                     },
                                                     {
                                                         key: '2',

@@ -327,7 +327,6 @@ export const Checkout = () => {
                     layout='vertical'
                 >
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-
                         <div>
                             <input type="hidden" name="merId" value={merId} />
                             <input type="hidden" name="currency" value="VND" />
@@ -466,14 +465,14 @@ export const Checkout = () => {
                                         value={selectedDistrict || ''}
                                         options={selectedProvince &&
                                             provinces
-                                                .find((province) => province.name === selectedProvince)
-                                                .districts.map((district) => (
+                                                .find((province) => province.name === selectedProvince)?.districts.map((district) => (
                                                     {
                                                         key: district.code,
                                                         label: district.name,
                                                         value: district.name
                                                     }
-                                                ))}
+                                                ))
+                                        }
                                     />
                                 </Form.Item>
                             </div>
@@ -494,8 +493,7 @@ export const Checkout = () => {
                                         options={selectedDistrict &&
                                             provinces
                                                 .reduce((prev, province) => prev.concat(province.districts), [])
-                                                .find((district) => district.name === selectedDistrict)
-                                                .wards.map((ward) => (
+                                                .find((district) => district.name === selectedDistrict)?.wards.map((ward) => (
                                                     {
                                                         key: ward.code,
                                                         label: ward.name,
@@ -723,4 +721,3 @@ export const Checkout = () => {
         </>
     )
 }
-

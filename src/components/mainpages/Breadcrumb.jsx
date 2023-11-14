@@ -49,6 +49,21 @@ const Breadcrumb = () => {
                         case 'order':
                             slug = 'Chi tiết đơn hàng';
                             break;
+                        case 'profile':
+                            slug = 'Thông tin tài khoản';
+                            break;
+                        case 'info':
+                            slug = 'Hồ sơ';
+                            break;
+                        case 'password':
+                            slug = 'Đổi mật khẩu';
+                            break;
+                        case 'address':
+                            slug = 'Sổ địa chỉ';
+                            break;
+                        case 'setting':
+                            slug = 'Cài đặt';
+                            break;
                         default:
                             slug = path;
                             break;

@@ -59,6 +59,36 @@ export const createUser = createAsyncThunk(
     }
 );
 
+export const updateProfile = createAsyncThunk(
+    "user/updateProfile",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiUser.updateProfile(params);
+            message.success("Cập nhật thông tin thành công");
+            return response;
+        } catch (error) {
+            message.error(`Cập nhật thông tin thất bại: ${error.msg}`);
+            console.log("Failed to update profile: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+export const changePassword = createAsyncThunk(
+    "user/changePassword",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiUser.changePassword(params);
+            message.success("Đổi mật khẩu thành công");
+            return response;
+        } catch (error) {
+            message.error(`Đổi mật khẩu thất bại: ${error.msg}`);
+            console.log("Failed to change password: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
 export const updateUser = createAsyncThunk(
     "user/updateUser",
     async (params, thunkAPI) => {

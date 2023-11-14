@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { CategoryPage } from "./mainpages/CategoryPage";
 import { ProductDetail } from "./mainpages/ProductDetail";
 import { MainPages } from "./mainpages/MainPages";
@@ -10,6 +10,10 @@ import { SearchOrders } from "./mainpages/SearchOrders";
 import { Order } from "./mainpages/Order";
 import { Login } from "./mainpages/auth/Login";
 import { Register } from "./mainpages/auth/Register";
+import { Profile } from "./mainpages/profile/Profile";
+import { OrdersProfile } from "./mainpages/profile/OrdersProfile";
+import { AddressProfile } from "./mainpages/profile/AddressProfile";
+import { ChangePassword } from "./mainpages/profile/ChangePassword";
 import { NotFound } from "./NotFound";
 
 const Pages = () => {
@@ -29,6 +33,10 @@ const Pages = () => {
                 <Route path="/callback" element={<CallBack />} />
                 <Route path="/orders" element={<SearchOrders />} />
                 <Route path="/order/:id" element={<Order />} />
+                <Route path="/profile/info" element={<Profile />} />
+                <Route path="/profile/orders" element={<OrdersProfile />} />
+                <Route path="/profile/address" element={<AddressProfile />} />
+                <Route path="/profile/change-password" element={<ChangePassword />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </>

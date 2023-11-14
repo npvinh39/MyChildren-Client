@@ -3,6 +3,8 @@ import {
     fetchUsers,
     fetchUser,
     fetchProfile,
+    updateProfile,
+    changePassword,
     createUser,
     updateUser
 } from './path-api';
@@ -59,6 +61,30 @@ export const userSlice = createSlice({
             state.loading = false;
             state.message = action.payload;
         },
+        [updateProfile.pending]: (state) => {
+            state.loading = true;
+        },
+        [updateProfile.fulfilled]: (state, action) => {
+            state.loading = false;
+            // update profile
+            state.profile = action.payload.data;
+        },
+        [updateProfile.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
+        [changePassword.pending]: (state) => {
+            state.loading = true;
+        },
+        [changePassword.fulfilled]: (state, action) => {
+            state.loading = false;
+            // update profile
+            // state.profile = action.payload.data;
+        },
+        [changePassword.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
         [createUser.pending]: (state) => {
             state.loading = true;
         },
@@ -75,10 +101,8 @@ export const userSlice = createSlice({
         },
         [updateUser.fulfilled]: (state, action) => {
             state.loading = false;
-            const index = state.users.findIndex((x) => x.id === action.payload.data.id);
-            if (index >= 0) {
-                state.users[index] = action.payload.data;
-            }
+            // update profile
+            state.profile = action.payload.data;
         },
         [updateUser.rejected]: (state, action) => {
             state.loading = false;
