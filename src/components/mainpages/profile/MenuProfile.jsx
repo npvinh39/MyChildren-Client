@@ -38,7 +38,7 @@ export const MenuProfile = () => {
                 width: 256,
             }}
             defaultSelectedKeys={[
-                slug === '/profile/info' ? '1' : slug === '/profile/orders' ? '2' : slug === '/profile/change-password' ? '3' : '1'
+                slug === '/profile/info' ? '1' : slug === '/profile/orders' ? 'sub2' : slug === '/profile/change-password' ? '3' : slug === '/profile/address' ? '2' : '1'
             ]}
             defaultOpenKeys={['sub1']}
             mode="inline"
