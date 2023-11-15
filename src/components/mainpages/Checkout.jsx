@@ -27,8 +27,8 @@ export const Checkout = () => {
     const [windowType, setWindowType] = useState(0);
     const [selectedProvince, setSelectedProvince] = useState(null);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
-    const [ward, setWard] = useState('');
-    const [street, setStreet] = useState('');
+    const [ward, setWard] = useState(null);
+    const [street, setStreet] = useState(null);
     const [shipping, setShipping] = useState(0);
 
     const [infoOrder, setInfoOrder] = useState({
@@ -216,12 +216,12 @@ export const Checkout = () => {
         const provinceCode = e;
         setSelectedProvince(provinceCode);
         form.setFieldsValue({
-            buyerDistrict: '',
-            buyerWard: '',
+            buyerDistrict: null,
+            buyerWard: null,
         });
         setInfoOrder(prevInfoOrder => ({
             ...prevInfoOrder,
-            buyerAddr: '',
+            buyerAddr: null,
         }));
     };
 
@@ -229,11 +229,11 @@ export const Checkout = () => {
         const districtCode = e;
         setSelectedDistrict(districtCode);
         form.setFieldsValue({
-            buyerWard: '',
+            buyerWard: null,
         });
         setInfoOrder(prevInfoOrder => ({
             ...prevInfoOrder,
-            buyerAddr: '',
+            buyerAddr: null,
         }));
     };
 
