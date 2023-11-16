@@ -22,6 +22,7 @@ export const Checkout = () => {
     const { profile } = useSelector(state => state.user);
     const { cart, productCart, totalPrice, quantityCart } = useSelector(state => state.cart);
     const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { address } = useSelector(state => state.address);
     const [quantity, setQuantity] = useState(0);
     const [timeStamp, setTimeStamp] = useState('');
     const [windowType, setWindowType] = useState(0);
@@ -191,10 +192,10 @@ export const Checkout = () => {
                 buyerLastNm: profile.last_name,
                 buyerFirstNm: profile.first_name,
                 buyerPhone: profile.phone,
-                buyerCity: profile.address[0]?.province,
-                buyerDistrict: profile.address[0]?.district,
-                buyerWard: profile.address[0]?.ward,
-                buyerStreet: profile.address[0]?.number_street,
+                buyerCity: address[0]?.province,
+                buyerDistrict: address[0]?.district,
+                buyerWard: address[0]?.ward,
+                buyerStreet: address[0]?.number_street,
             });
             setInfoOrder(prevInfoOrder => ({
                 ...prevInfoOrder,
@@ -202,12 +203,12 @@ export const Checkout = () => {
                 buyerLastNm: profile.last_name,
                 buyerFirstNm: profile.first_name,
                 buyerPhone: profile.phone,
-                buyerAddr: `${profile.address[0]?.number_street}, ${profile.address[0]?.ward}, ${profile.address[0]?.district}, ${profile.address[0]?.province}`,
+                buyerAddr: `${address[0]?.number_street}, ${address[0]?.ward}, ${address[0]?.district}, ${address[0]?.province}`,
             }));
-            setSelectedProvince(profile.address[0]?.province);
-            setSelectedDistrict(profile.address[0]?.district);
-            setWard(profile.address[0]?.ward);
-            setStreet(profile.address[0]?.number_street);
+            setSelectedProvince(address[0]?.province);
+            setSelectedDistrict(address[0]?.district);
+            setWard(address[0]?.ward);
+            setStreet(address[0]?.number_street);
         }
     }, [form, profile]);
 

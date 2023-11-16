@@ -12,7 +12,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { onLogin, onLogout } from '../../features/login/path-api';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { fetchProfile } from '../../features/user/path-api';
+import { fetchAddressByUserId } from "../../features/address/path-api";
 import { addToCart, deleteProductFromCart } from '../../features/cart/path-api';
+
 import { getCart, getProductCart, getTotalPrice, getQuantityCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
@@ -40,6 +42,7 @@ export const Header = () => {
     useEffect(() => {
         if (id) {
             dispatch(fetchProfile(id));
+            dispatch(fetchAddressByUserId());
         }
     }, [dispatch, id]);
 

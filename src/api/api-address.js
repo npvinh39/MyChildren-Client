@@ -32,6 +32,6 @@ export const apiAddress = {
     },
     deleteAddress: (data) => {
         const url = `/address/delete/${data.id}`;
-        return axiosClient.patch(url, data);
+        return axiosClient.delete(url, data);
     },
 }

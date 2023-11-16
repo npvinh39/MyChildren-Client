@@ -73,7 +73,14 @@ export const addressSlice = createSlice({
         },
         [updateDefaultAddress.fulfilled]: (state, action) => {
             state.loading = false;
-            state.address = action.payload;
+            // đưa vị trí địa chỉ cần update lên đầu mảng
+            console.log(action)
+            const index = state.address.findIndex(
+                (address) => address._id === action.meta.arg.address_id
+            );
+            const address = state.address[index];
+            state.address.splice(index, 1);
+            state.address.unshift(address);
         },
         [updateDefaultAddress.rejected]: (state, action) => {
             state.loading = false;
@@ -84,7 +91,11 @@ export const addressSlice = createSlice({
         },
         [updateAddress.fulfilled]: (state, action) => {
             state.loading = false;
-            state.address = action.payload;
+            // update address
+            const index = state.address.findIndex(
+                (address) => address._id === action.payload.data._id
+            );
+            state.address[index] = action.payload.data;
         },
         [updateAddress.rejected]: (state, action) => {
             state.loading = false;
@@ -95,7 +106,8 @@ export const addressSlice = createSlice({
         },
         [deleteAddress.fulfilled]: (state, action) => {
             state.loading = false;
-            state.address = action.payload;
+            const index = state.address.indexOf(action.meta.arg.id);
+            state.address.splice(index, 1);
         },
         [deleteAddress.rejected]: (state, action) => {
             state.loading = false;

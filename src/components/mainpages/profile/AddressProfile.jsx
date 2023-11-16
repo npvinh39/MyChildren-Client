@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Breadcrumb from '../Breadcrumb';
 import { useDispatch, useSelector } from "react-redux";
-import { fetchAddressByUserId, addAddress } from "../../../features/address/path-api";
+import { fetchAddressByUserId, addAddress, updateDefaultAddress, updateAddress, deleteAddress } from "../../../features/address/path-api";
 import { Link, useNavigate } from "react-router-dom";
 import { Empty, message, Button, Spin, Modal, Form, Input, Select } from "antd";
 import { MenuProfile } from "./MenuProfile";
@@ -17,6 +17,7 @@ export const AddressProfile = () => {
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [ward, setWard] = useState(null);
     const [street, setStreet] = useState(null);
+    const [addressId, setAddressId] = useState(null);
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
     const { address, loading } = useSelector(state => state.address);
@@ -70,8 +71,29 @@ export const AddressProfile = () => {
 
     // set default address
     const setDefaultAddress = (id) => {
-        console.log(id);
-    }
+        dispatch(updateDefaultAddress({ address_id: id }));
+    };
+
+    // update address
+    const updateAddressById = (values) => {
+        setIsModalOpen(true);
+        setSelectedProvince(values.province);
+        setSelectedDistrict(values.district);
+        setWard(values.ward);
+        setStreet(values.number_street);
+        setAddressId(values._id);
+        form.setFieldsValue({
+            province: values.province,
+            district: values.district,
+            ward: values.ward,
+            number_street: values.number_street,
+        });
+    };
+
+    // delete address
+    const deleteAddressById = (id) => {
+        dispatch(deleteAddress({ id }));
+    };
 
     // modal add address
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,12 +101,18 @@ export const AddressProfile = () => {
         setIsModalOpen(true);
     };
     const handleOk = (values) => {
-        dispatch(addAddress(values));
+        if (addressId) {
+            dispatch(updateAddress({ ...values, id: addressId }));
+        }
+        else {
+            dispatch(addAddress(values));
+        }
         form.resetFields();
         setIsModalOpen(false);
     };
     const handleCancel = () => {
         form.resetFields();
+        setAddressId(null);
         setIsModalOpen(false);
     };
 
@@ -216,7 +244,11 @@ export const AddressProfile = () => {
                                                 {/* submit and cancel button */}
                                                 <div className="flex justify-center items-center mt-4">
                                                     <Button onClick={handleCancel} className="mr-4">Hủy</Button>
-                                                    <Button type="primary" htmlType="submit" loading={loading} className="bg-blue-500">Lưu</Button>
+                                                    {
+                                                        <Button type="primary" htmlType="submit" loading={loading} className="bg-blue-500">
+                                                            {addressId ? "Sửa" : "Thêm"}
+                                                        </Button>
+                                                    }
                                                 </div>
                                             </Form>
 
@@ -234,18 +266,14 @@ export const AddressProfile = () => {
                                                                     index === 0 ?
                                                                         <Button danger>Mặc định</Button>
                                                                         :
-                                                                        <Button type="primary" ghost onClick={setDefaultAddress(item._id)} className="bg-blue-500">Đặt mặc định</Button>
+                                                                        <Button type="primary" ghost onClick={() => setDefaultAddress(item._id)} className="bg-blue-500">Đặt mặc định</Button>
                                                                 }
                                                             </div>
                                                             <div>
                                                                 {/* edit */}
-                                                                <Link to={`/profile/address/edit/${item._id}`} className="text-sm text-blue-600 hover:underline">
-                                                                    <Button type="primary" className="rounded bg-blue-500">Sửa</Button>
-                                                                </Link>
+                                                                <Button type="primary" onClick={() => updateAddressById(item)} className="rounded bg-blue-500">Sửa</Button>
                                                                 {/* delete */}
-                                                                <Link to={`/profile/address/delete/${item._id}`} className="text-sm text-red-600 hover:underline ml-4">
-                                                                    <Button type="primary" danger className="rounded">Xóa</Button>
-                                                                </Link>
+                                                                <Button type="primary" danger onClick={() => deleteAddressById(item._id)} className="rounded ml-2">Xóa</Button>
                                                             </div>
                                                         </div>
                                                     </div>
