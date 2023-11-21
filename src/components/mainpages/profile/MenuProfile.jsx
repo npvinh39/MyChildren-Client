@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Menu } from "antd";
 import { SolutionOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
@@ -18,11 +18,11 @@ const items = [
         getItem('Đổi mật khẩu', '3', <Link to='/profile/change-password'></Link>),
 
     ]),
-    getItem('Đơn hàng', 'sub2', <SolutionOutlined />),
+    getItem('Đơn hàng', 'sub2', <Link to='/profile/orders'><SolutionOutlined /></Link>),
     {
         type: 'divider',
     },
-    getItem('Cài đặt thông báo', 'sub3', <Link to='/profile/orders'><SettingOutlined /></Link>),
+    getItem('Cài đặt thông báo', 'sub3', <SettingOutlined />),
     getItem('Hành động', 'grp', null, [getItem('Đăng xuất', '4', <LogoutOutlined />)], 'group'),
 ];
 export const MenuProfile = () => {

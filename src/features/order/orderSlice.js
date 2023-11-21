@@ -1,5 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchOrders, fetchOrder, fetchOrderByUser, createOrder, updateOrder, deleteOrder } from './path-api';
+import {
+    fetchOrders,
+    fetchOrder,
+    fetchOrderByCode,
+    fetchOrderByUser,
+    createOrder,
+    updateOrder,
+    deleteOrder
+} from './path-api';
 
 export const orderSlice = createSlice({
     name: 'order',
@@ -38,6 +46,17 @@ export const orderSlice = createSlice({
 
         },
         [fetchOrder.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
+        [fetchOrderByCode.pending]: (state) => {
+            state.loading = true;
+        },
+        [fetchOrderByCode.fulfilled]: (state, action) => {
+            state.loading = false;
+            state.order = action.payload;
+        },
+        [fetchOrderByCode.rejected]: (state, action) => {
             state.loading = false;
             state.message = action.payload;
         },

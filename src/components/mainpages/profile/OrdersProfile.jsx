@@ -1,5 +1,6 @@
 import React from "react";
 import Breadcrumb from '../Breadcrumb';
+import dayjs from 'dayjs';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrderByUser } from "../../../features/order/path-api";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,12 +8,19 @@ import { message, Card, Typography, Button, Badge } from "antd";
 import { MenuProfile } from "./MenuProfile";
 
 export const OrdersProfile = () => {
+    const VND = new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+    });
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
     const { orderByUser } = useSelector(state => state.order);
-    console.log("ordersProfile", orderByUser);
+
+    const formatDate = (date) => {
+        return dayjs(date).format("DD-MM-YYYY HH:mm");
+    };
 
     React.useEffect(() => {
         if (profile) {
@@ -30,13 +38,6 @@ export const OrdersProfile = () => {
         );
     }
 
-    // Mock data for order history
-    const orderHistory = [
-        { id: 1, date: "2022-01-01", status: "Giao hàng thành công", total: 100 },
-        { id: 2, date: "2022-02-01", status: "Giao hàng thành công", total: 200 },
-        { id: 3, date: "2022-03-01", status: "Giao hàng thành công", total: 300 },
-    ];
-
     return (
         <div className="container mx-auto w-full max-w-[1366px]">
             <div className="breadcrumb bg-gray-100 px-3 py-[2px] my-8">
@@ -47,24 +48,24 @@ export const OrdersProfile = () => {
                 <div className="flex-1 ml-4">
                     <h2 className="text-2xl font-bold mb-4">Lịch sử đơn hàng</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {orderHistory.map(order => (
+                        {orderByUser.map((order, index) => (
                             <Card
                                 key={order.id}
                                 className="order-card"
                                 title={
                                     <Typography.Title level={5}>
-                                        Đơn hàng #{order.id}
+                                        Đơn hàng #{index + 1}
                                     </Typography.Title>
                                 }
                                 extra={
-                                    <Link to={`/profile/orders/${order.id}`}>
+                                    <Link to={`/order/${order._id}`}>
                                         <Button type="primary" className="bg-blue-500">Chi tiết</Button>
                                     </Link>
                                 }
                             >
-                                <p className="text-sm">Ngày đặt hàng: {order.date}</p>
+                                <p className="text-sm">Ngày đặt hàng: {formatDate(order.createdAt)}</p>
                                 <p className="text-sm">Trạng thái: <Badge status="success" text={order.status} /></p>
-                                <p className="text-sm">Tổng tiền: {order.total}đ</p>
+                                <p className="text-sm">Tổng tiền: {VND.format(order.final_total)}</p>
                             </Card>
                         ))}
                     </div>

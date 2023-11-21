@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Empty, Spin, Dropdown, message, Modal, Button } from 'antd';
+import { Drawer, Empty, Spin, Dropdown, Modal, Button } from 'antd';
 import {
     UserOutlined,
     LogoutOutlined,
     AudioOutlined,
     AudioMutedOutlined
 } from '@ant-design/icons';
-import { RiPhoneFill, RiSearchLine, RiUserLine, RiVipCrownLine, RiShoppingCart2Line, RiCloseLine, RiMenuFill } from "react-icons/ri";
+import { RiPhoneFill, RiUserLine, RiShoppingCart2Line, RiCloseLine, RiMenuFill } from "react-icons/ri";
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { onLogin, onLogout } from '../../features/login/path-api';
+import { onLogout } from '../../features/login/path-api';
 import { fetchProductsWithDescription } from '../../features/product/path-api';
 import { fetchProfile } from '../../features/user/path-api';
 import { fetchAddressByUserId } from "../../features/address/path-api";
 import { addToCart, deleteProductFromCart } from '../../features/cart/path-api';
-
 import { getCart, getProductCart, getTotalPrice, getQuantityCart } from '../../features/cart/cartSlice';
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
@@ -24,7 +23,7 @@ export const Header = () => {
     const [placeholderSearch, setPlaceholderSearch] = useState('Tìm kiếm sản phẩm...');
     const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
     const dispatch = useDispatch();
-    const { products, loading, currentPage, pageSize, totalPages, sort } = useSelector(state => state.product);
+    const { products, loading, currentPage, pageSize, sort } = useSelector(state => state.product);
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
     const { cart, productCart, totalPrice, quantityCart } = useSelector(state => state.cart);
@@ -185,11 +184,8 @@ export const Header = () => {
     const [search, setSearch] = useState([]);
     const [searchValue, setSearchValue] = useState('');
 
-    const [isListening, setIsListening] = useState(false);
-
     const handleListen = () => {
         SpeechRecognition.startListening({ continuous: true });
-        setIsListening(true);
         setPlaceholderSearch('Đang lắng nghe...');
         resetTranscript();
     };
@@ -199,7 +195,6 @@ export const Header = () => {
         setSearchValue(transcript.toLowerCase());
         setPlaceholderSearch('Tìm kiếm sản phẩm...');
         resetTranscript();
-        setIsListening(false);
     };
 
     // search product
@@ -353,7 +348,7 @@ export const Header = () => {
                                     </span>
                                 </button> */}
                                 <div className="bg-[#f7f9fa] flex justify-center items-center">
-                                    {isListening ? (
+                                    {listening ? (
                                         <Button onClick={handleStop} className='button-micro-antd' type="primary" shape="circle" icon={<AudioMutedOutlined style={{
                                             fontSize: '18px',
                                         }} />} />
@@ -433,7 +428,6 @@ export const Header = () => {
                                                 items: [
                                                     {
                                                         key: '1',
-                                                        label: 'Thông tin tài khoản',
                                                         icon: <UserOutlined />,
                                                         label: (
                                                             <Link to='/profile/info'>
@@ -661,8 +655,8 @@ export const Header = () => {
                             </Link>
                         </li>
                         <li className="inline-block px-2">
-                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
-                                Cẩm Nang
+                            <Link to="/orders" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                                Tra Cứu
                             </Link>
                         </li>
                     </ul>

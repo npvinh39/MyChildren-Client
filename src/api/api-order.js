@@ -13,6 +13,12 @@ export const apiOrder = {
         return response;
     },
 
+    getOrderByCode: async (code) => {
+        const url = `/order/code/${code}`;
+        const response = await axiosClient.get(url);
+        return response;
+    },
+
     getOrderByUser: async (user) => {
         const url = `/order/user/${user}`;
         const response = await axiosClient.get(url);
