@@ -11,6 +11,7 @@ import ratedSlice from '../features/rated/ratedSlice'
 import contactSlice from '../features/contact/contactSlice'
 import cartSlice from '../features/cart/cartSlice'
 import addressSlice from '../features/address/addressSlice'
+import chatbotSlice from '../features/chatbot/chatbotSlice'
 
 export const store = configureStore({
     reducer: {
@@ -26,5 +27,6 @@ export const store = configureStore({
         rated: ratedSlice,
         cart: cartSlice,
         address: addressSlice,
+        chatbot: chatbotSlice,
     },
 })

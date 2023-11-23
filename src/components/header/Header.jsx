@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Chatbot } from './Chatbot';
 import { Drawer, Empty, Spin, Dropdown, Modal, Button } from 'antd';
 import {
     UserOutlined,
@@ -662,6 +663,7 @@ export const Header = () => {
                     </ul>
                 </div>
             </nav>
+            <Chatbot />
         </header>
     );
 }
