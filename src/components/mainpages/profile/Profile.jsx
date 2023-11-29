@@ -106,7 +106,7 @@ export const Profile = () => {
                                     }
                                 ]}
                             >
-                                <Input />
+                                <Input disabled={true} />
                             </Form.Item>
 
                             <Form.Item

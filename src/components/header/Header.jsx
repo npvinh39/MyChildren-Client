@@ -247,11 +247,11 @@ export const Header = () => {
                 <div className="container mx-auto 2xl:px-20">
                     <ul className="flex justify-between px-1">
                         <li className="">
-                            <a className="text-sm text-white font-bold uppercase flex items-center h-6" href="tel:19001208">
+                            <a className="text-sm text-white font-bold uppercase flex items-center h-6" href="tel:0398033985">
                                 <span className="text-lg pr-1">
                                     <RiPhoneFill />
                                 </span>
-                                HOTLINE: 19001208
+                                HOTLINE: 0398 033 985
                             </a>
                         </li>
                         <li className="">

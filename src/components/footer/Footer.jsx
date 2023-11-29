@@ -52,7 +52,7 @@ export const Footer = () => {
                         <div className="footer-menu-contact col-span-1 md:col-span-3 md:text-center lg:col-span-1 lg:text-left">
                             <h4 className="text-base font-bold text-gray-600 uppercase hidden md:block">Hotline chăm sóc khách hàng</h4>
                             <div className="contact-description">
-                                <a href="tel:19001208" className="text-4xl font-bold text-[red] hidden md:block">19001208</a>
+                                <a href="tel:0398033985" className="text-4xl font-bold text-[red] hidden md:block">0398 033 985</a>
                                 <p className="text-base text-gray-600 italic">
                                     Từ thứ Hai đến thứ Bảy (08:00 - 17:00)
                                     <br />
@@ -61,14 +61,14 @@ export const Footer = () => {
                                 <a href="mailto:hotro@mykingdom.com.vn" className="text-xl flex items-center">
                                     <RiMailLine className="mr-1" />
                                     <span className="text-[15px]">
-                                        hotro@mykingdom.com.vn
+                                        hotro@mychildren.com.vn
                                     </span>
                                 </a>
                             </div>
                         </div>
                         <div className="footer-menu-contact__mobile block md:hidden">
                             <h4 className="text-xs font-bold text-gray-600 uppercase">Hotline chăm sóc khách hàng</h4>
-                            <a href="tel:19001208" className="text-4xl font-bold text-[red]">19001208</a>
+                            <a href="tel:0398033985" className="text-2xl font-bold text-[red]">0398033985</a>
                         </div>
                         <div className="footer-menu-policy">
                             <h4 className="text-base font-bold text-gray-600 uppercase">Điều khoản & chính sách</h4>
@@ -113,12 +113,10 @@ export const Footer = () => {
                     <div className="footer-coppyright-content flex justify-center items-center mt-8">
                         <div className="text-center">
                             <p className="text-sm text-gray-600">
-                                Công ty cổ phần Việt Tinh Anh. Số ĐKKD: 0309132354 do sở kế hoạch và đầu tư cấp ngày
-                                14/07/09
+                                Trường Đại học Cần Thơ (Can Tho University)
                             </p>
                             <p className="text-sm text-gray-600">
-                                Địa chỉ: 33-35 đường số D4, khu Đô thị mới Him Lam, Phường Tân Hưng, Quận 7, TP. Hồ Chí
-                                Minh. Điện thoại: 0286.2638.600
+                                Địa chỉ: Khu II, đường 3/2, P. Xuân Khánh, Q. Ninh Kiều, TP. Cần Thơ. Điện thoại: 0398.033.985
                             </p>
                         </div>
                     </div>

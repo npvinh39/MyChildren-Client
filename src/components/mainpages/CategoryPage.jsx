@@ -12,6 +12,7 @@ export const CategoryPage = () => {
     const [cart, setCart] = useState([]);
     const dispatch = useDispatch();
     const { products, productsByCategory, loading, currentPageCategories, pageSizeCategories, totalPagesCategories, sort } = useSelector(state => state.product);
+    console.log(productsByCategory)
     console.log(pageSizeCategories)
     const { id } = useParams();
 
@@ -22,7 +23,7 @@ export const CategoryPage = () => {
     }, [dispatch, id]);
 
     const handlePageChange = (page, pageSize) => {
-        dispatch(fetchProductsByCategory({ currentPage: page, pageSize }));
+        dispatch(fetchProductsByCategory({ id, currentPage: page, pageSize }));
     };
 
     const onShowSizeChange = (current, pageSizeCategories) => {

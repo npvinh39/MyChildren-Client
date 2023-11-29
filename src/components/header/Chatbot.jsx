@@ -8,7 +8,6 @@ export const Chatbot = () => {
     const dispatch = useDispatch();
     const [form] = Form.useForm()
     const { messages, loading, status } = useSelector(state => state.chatbot);
-    console.log("messages: ", messages);
     const [showChatbox, setShowChatbox] = useState(false);
     const chatContainerRef = useRef(null);
 

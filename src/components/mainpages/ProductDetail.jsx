@@ -253,7 +253,7 @@ export const ProductDetail = ({ match }) => {
                         </div>
                         <div className="select-store">
                             <div className="select-store__title mt-4">
-                                <h3 className="text-[15px] font-medium uppercase">Các cửa hàng còn sản phẩm (222)</h3>
+                                <h3 className="text-[15px] font-medium uppercase">Các cửa hàng của MyChildren</h3>
                             </div>
                             <div className="select-store__list mt-2">
                                 <div className="seselect-store__list-location flex justify-between items-center w-full xl:w-[80%] mt-2">

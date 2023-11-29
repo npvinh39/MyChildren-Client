@@ -54,7 +54,7 @@ export const OrdersProfile = () => {
                                 className="order-card"
                                 title={
                                     <Typography.Title level={5}>
-                                        Đơn hàng #{index + 1}
+                                        Đơn hàng {order.code_order}
                                     </Typography.Title>
                                 }
                                 extra={
