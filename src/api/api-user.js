@@ -62,7 +62,7 @@ export const apiUser = {
     },
 
     resetPassword: (params) => {
-        const url = `/user/reset_password`;
+        const url = `/user/reset_password/${params.token}`;
         return axiosClient.post(url, params);
     },
 };

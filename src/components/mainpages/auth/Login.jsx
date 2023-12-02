@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input, Divider } from 'antd';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { onLogin } from '../../../features/login/path-api';
 import Cookies from 'js-cookie';
@@ -88,9 +87,9 @@ export const Login = () => {
                                     <Checkbox>Ghi nhớ đăng nhập</Checkbox>
                                 </Form.Item>
 
-                                <a className="login-form-forgot text-blue-400" href="#">
+                                <Link to={`/forgot-password`} className="login-form-forgot text-blue-400" href="#">
                                     Quên mật khẩu?
-                                </a>
+                                </Link>
                             </div>
 
                             <Form.Item>

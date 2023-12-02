@@ -13,7 +13,11 @@ function App() {
 
 const MainPages = () => {
     const location = useLocation();
-    const isPage = location.pathname === '/login' || location.pathname === '/register';
+    const isPage =
+        location.pathname === '/login' ||
+        location.pathname === '/register' ||
+        location.pathname === '/forgot-password' ||
+        location.pathname.startsWith('/reset-password');
     if (isPage) {
         return (
             <div className="App">

@@ -5,6 +5,8 @@ import {
     fetchProfile,
     updateProfile,
     changePassword,
+    forgotPassword,
+    resetPassword,
     createUser,
     updateUser
 } from './path-api';
@@ -17,6 +19,7 @@ export const userSlice = createSlice({
         profile: null,
         cartUser: null,
         loading: false,
+        status: null,
         message: '',
         currentPage: 1,
         pageSize: 6,
@@ -83,6 +86,29 @@ export const userSlice = createSlice({
         },
         [changePassword.rejected]: (state, action) => {
             state.loading = false;
+            state.message = action.payload;
+        },
+        [forgotPassword.pending]: (state) => {
+            state.loading = true;
+        },
+        [forgotPassword.fulfilled]: (state, action) => {
+            state.loading = false;
+        },
+        [forgotPassword.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
+        [resetPassword.pending]: (state) => {
+            state.loading = true;
+        },
+        [resetPassword.fulfilled]: (state, action) => {
+            state.loading = false;
+            state.status = action.meta.requestStatus;
+        },
+        [resetPassword.rejected]: (state, action) => {
+            state.loading = false;
+            console.log("Failed to reset password: ", action);
+            state.status = action.meta.requestStatus;
             state.message = action.payload;
         },
         [createUser.pending]: (state) => {

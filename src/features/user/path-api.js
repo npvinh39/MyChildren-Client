@@ -89,6 +89,36 @@ export const changePassword = createAsyncThunk(
     }
 );
 
+export const forgotPassword = createAsyncThunk(
+    "user/forgotPassword",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiUser.forgotPassword(params);
+            message.success("Đã gửi email đến hộp thư của bạn");
+            return response;
+        } catch (error) {
+            message.error(`Gửi email thất bại: ${error.msg}`);
+            console.log("Failed to send email: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+export const resetPassword = createAsyncThunk(
+    "user/resetPassword",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiUser.resetPassword(params);
+            message.success("Đổi mật khẩu thành công");
+            return response;
+        } catch (error) {
+            message.error(`Đổi mật khẩu thất bại: ${error.msg}`);
+            console.log("Failed to reset password: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
 export const updateUser = createAsyncThunk(
     "user/updateUser",
     async (params, thunkAPI) => {

@@ -10,6 +10,7 @@ import { SearchOrders } from "./mainpages/SearchOrders";
 import { Order } from "./mainpages/Order";
 import { Login } from "./mainpages/auth/Login";
 import { Register } from "./mainpages/auth/Register";
+import { ForgotPassword, ResetPassword } from "./index";
 import { Profile } from "./mainpages/profile/Profile";
 import { OrdersProfile } from "./mainpages/profile/OrdersProfile";
 import { AddressProfile } from "./mainpages/profile/AddressProfile";
@@ -37,6 +38,8 @@ const Pages = () => {
                 <Route path="/profile/orders" element={<OrdersProfile />} />
                 <Route path="/profile/address" element={<AddressProfile />} />
                 <Route path="/profile/change-password" element={<ChangePassword />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </>

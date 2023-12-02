@@ -10,7 +10,7 @@ export const fetchStatusChatbot = createAsyncThunk(
             const response = await apiChatbot.getChatbot();
             return response;
         } catch (error) {
-            message.error(`Lấy trạng thái chatbot thất bại: ${error.msg}`);
+            // message.error(`Lấy trạng thái chatbot thất bại: ${error.msg}`);
             console.log("Failed to fetch status chatbot: ", error);
             return thunkAPI.rejectWithValue(error);
         }
