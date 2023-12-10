@@ -66,13 +66,13 @@ export const Checkout = () => {
 
     const getSpending = () => {
         let discount = 0;
-        if (profile?.spending >= 1000000) {
+        if (profile?.spending >= 10000000) {
             discount = 0.1;
         }
-        else if (profile?.speding >= 500000) {
+        else if (profile?.speding >= 5000000) {
             discount = 0.05;
         }
-        else if (profile?.speding >= 100000) {
+        else if (profile?.speding >= 1000000) {
             discount = 0.02;
         }
         else {

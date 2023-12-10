@@ -14,6 +14,8 @@ export const Profile = () => {
     const { profile } = useSelector(state => state.user);
     const { isAuth } = useSelector(state => state.login);
 
+    const VND = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
     useEffect(() => {
         if (profile) {
             form.setFieldsValue({
@@ -47,7 +49,16 @@ export const Profile = () => {
             <div className="flex justify-between items-center items-stretch mb-8">
                 <MenuProfile />
                 <div className="flex-1 ml-4">
-                    <div>Hồ sơ của tôi</div>
+                    <div className="flex justify-start items-center mb-8">
+                        <div>Tổng chi tiêu:</div>
+                        <span className="bg-amber-300 rounded mx-1 p-3">{VND.format(Number(profile?.spending))}</span>
+                        {
+                            profile?.spending >= 10000000 ? <span className="">bạn được giảm giá 10% trên mỗi đơn hàng</span>
+                                : profile?.spending >= 5000000 ? <span className="">bạn được giảm giá 5% trên mỗi đơn hàng</span>
+                                    : profile?.spending >= 1000000 ? <span className="">bạn được giảm giá 2% trên mỗi đơn hàng</span>
+                                        : <span className="">bạn chưa đạt mức giảm giá</span>
+                        }
+                    </div>
                     <div className="mt-4">
                         <Form
                             name="basic"
