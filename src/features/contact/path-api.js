@@ -35,7 +35,7 @@ export const createContact = createAsyncThunk(
     async (params, thunkAPI) => {
         try {
             const response = await apiContacts.create(params);
-            message.success("Tạo mới thành công!");
+            message.success("Gửi thông tin thành công!");
             return response;
         } catch (error) {
             message.error(`Tạo mới thất bại: ${error.msg}`);

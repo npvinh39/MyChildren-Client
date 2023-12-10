@@ -10,6 +10,7 @@ import { SearchOrders } from "./mainpages/SearchOrders";
 import { Order } from "./mainpages/Order";
 import { Login } from "./mainpages/auth/Login";
 import { Register } from "./mainpages/auth/Register";
+import { Contact } from "./mainpages/Contact";
 import { ForgotPassword, ResetPassword } from "./index";
 import { Profile } from "./mainpages/profile/Profile";
 import { OrdersProfile } from "./mainpages/profile/OrdersProfile";
@@ -34,6 +35,7 @@ const Pages = () => {
                 <Route path="/callback" element={<CallBack />} />
                 <Route path="/orders" element={<SearchOrders />} />
                 <Route path="/order/:id" element={<Order />} />
+                <Route path="/contact" element={<Contact />} />
                 <Route path="/profile/info" element={<Profile />} />
                 <Route path="/profile/orders" element={<OrdersProfile />} />
                 <Route path="/profile/address" element={<AddressProfile />} />

@@ -61,6 +61,9 @@ const Breadcrumb = () => {
                         case 'address':
                             slug = 'Sổ địa chỉ';
                             break;
+                        case 'contact':
+                            slug = 'Liên hệ';
+                            break;
                         case 'setting':
                             slug = 'Cài đặt';
                             break;

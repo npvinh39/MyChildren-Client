@@ -311,17 +311,17 @@ export const Header = () => {
                             </Link>
                             <Link to="/category/all">
                                 <p className='py-1'>
-                                    Chiến dịch
-                                </p>
-                                nổi bật</Link>
-                            <Link to="/category/all">
-                                <p className='py-1'>
                                     Ưu đãi
                                 </p>
                                 thành viên</Link>
                             <Link to="/orders">
                                 <p className='py-1'>
-                                    Tra cứu
+                                    Tra Cứu Đơn hàng
+                                </p>
+                            </Link>
+                            <Link to="/contact">
+                                <p className='py-1'>
+                                    Liên hệ
                                 </p>
                             </Link>
                         </Drawer>
@@ -647,17 +647,17 @@ export const Header = () => {
                         </li>
                         <li className="inline-block px-2">
                             <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
-                                Chiến Dịch Nổi Bật
-                            </Link>
-                        </li>
-                        <li className="inline-block px-2">
-                            <Link to="/category/all" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
                                 Ưu Đãi Thành Viên
                             </Link>
                         </li>
                         <li className="inline-block px-2">
                             <Link to="/orders" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
-                                Tra Cứu
+                                Tra Cứu Đơn hàng
+                            </Link>
+                        </li>
+                        <li className="inline-block px-2">
+                            <Link to="/contact" className="text-sm text-white hover:text-slate-200 font-bold transition-all">
+                                Liên hệ
                             </Link>
                         </li>
                     </ul>
