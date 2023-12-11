@@ -63,11 +63,26 @@ export const createOrder = createAsyncThunk(
     async (params, thunkAPI) => {
         try {
             const response = await apiOrder.createOrder(params);
-            message.success("Thêm danh mục thành công");
+            message.success("Đặt hàng thành công");
             return response;
         } catch (error) {
             message.error(`Thêm danh mục thất bại: ${error.msg}`);
             console.log("Failed to create order: ", error);
+            return thunkAPI.rejectWithValue(error);
+        }
+    }
+);
+
+export const cancelOrder = createAsyncThunk(
+    "order/cancelOrder",
+    async (params, thunkAPI) => {
+        try {
+            const response = await apiOrder.cancelOrder(params);
+            message.success("Hủy đơn hàng thành công");
+            return response;
+        } catch (error) {
+            message.error(`Hủy đơn hàng thất bại: ${error.msg}`);
+            console.log("Failed to cancel order: ", error);
             return thunkAPI.rejectWithValue(error);
         }
     }

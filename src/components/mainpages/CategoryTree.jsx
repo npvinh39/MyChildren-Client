@@ -3,6 +3,7 @@ import { Card, Spin } from 'antd';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories } from '../../features/category/path-api';
+import { resetCurrentPageCategories } from '../../features/product/productSlice';
 
 export const CategoryTree = () => {
     const dispatch = useDispatch();
@@ -31,7 +32,7 @@ export const CategoryTree = () => {
                             return (
                                 <Link
                                     to={`/category/${item._id}`}
-                                    // onClick={() => setCategoryHandler(item._id)}
+                                    onClick={() => dispatch(resetCurrentPageCategories())}
                                     className='block text-left text-base font-normal uppercase cursor-pointer hover:text-red-500 py-2'
                                     key={item._id}
                                 >

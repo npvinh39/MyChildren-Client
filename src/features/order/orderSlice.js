@@ -5,6 +5,7 @@ import {
     fetchOrderByCode,
     fetchOrderByUser,
     createOrder,
+    cancelOrder,
     updateOrder,
     deleteOrder
 } from './path-api';
@@ -16,12 +17,19 @@ export const orderSlice = createSlice({
         orderByUser: [],
         order: null,
         loading: false,
+        regex: '',
         message: '',
         currentPage: 1,
         pageSize: 6,
         totalPages: 0,
     },
-    reducers: {},
+    reducers: {
+        updateRegex: (state, action) => {
+            action.payload === "Tất cả" ?
+                state.regex = `status[regex]=` :
+                state.regex = `status[regex]=${action.payload}`;
+        }
+    },
     extraReducers: {
         [fetchOrders.pending]: (state) => {
             state.loading = true;
@@ -85,6 +93,22 @@ export const orderSlice = createSlice({
             state.loading = false;
             state.message = action.payload;
         },
+        [cancelOrder.pending]: (state) => {
+            state.loading = true;
+        },
+        [cancelOrder.fulfilled]: (state, action) => {
+            state.loading = false;
+            state.orderByUser = state.orderByUser.map((order) => {
+                if (order._id === action.meta.arg.id) {
+                    order.status = 'cancelled';
+                }
+                return order;
+            });
+        },
+        [cancelOrder.rejected]: (state, action) => {
+            state.loading = false;
+            state.message = action.payload;
+        },
         [updateOrder.pending]: (state) => {
             state.loading = true;
         },
@@ -112,5 +136,7 @@ export const orderSlice = createSlice({
         }
     }
 });
+
+export const { updateRegex } = orderSlice.actions;
 
 export default orderSlice.reducer;

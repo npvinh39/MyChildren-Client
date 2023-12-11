@@ -71,9 +71,8 @@ export const ProductDetail = ({ match }) => {
     }, []);
 
     const addToCart = (item) => {
-        console.log('item', item)
         const existingItemIndex = cart.findIndex(cartItem => cartItem.product_id === item._id);
-        console.log('existingItemIndex', existingItemIndex)
+
         if (existingItemIndex !== -1) {
             const newCart = cart.map(cartItem =>
                 cartItem.product_id === item._id ? { ...cartItem, quantity: cartItem.quantity + quantity } : cartItem
@@ -94,6 +93,16 @@ export const ProductDetail = ({ match }) => {
                 product_id: item._id,
                 quantity: quantity
             };
+
+            if (quantity > item.stock) {
+                message.error('Số lượng sản phẩm không đủ');
+                return;
+            }
+
+            if (quantity <= 0) {
+                message.error('Số lượng sản phẩm không hợp lệ');
+                return;
+            }
 
             const newCart = [...cart, newItem];
             dispatch(getCart(newCart));
@@ -235,22 +244,28 @@ export const ProductDetail = ({ match }) => {
                                 +
                             </button>
                         </div>
-
-                        <div className="product-detail__info__add-to-cart mt-2 flex justify-between items-center gap-2 w-full xl:w-[80%]">
-                            <Link to={'/checkout'}
-                                onClick={() => addToCart(product)}
-                                className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
-                                Mua Ngay
-                            </Link>
-                            <button
-                                onClick={() => addToCart(product)}
-                                className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
-                                Thêm vào giỏ hàng
-                            </button>
-                            <RiHeartLine
-                                className=' w-[10%] text-[#df494a] text-4xl cursor-pointer hover:text-[#df494a] transition-colors duration-300 ease-in-out'
-                            />
-                        </div>
+                        {
+                            product.stock > 0 ?
+                                <div className="product-detail__info__add-to-cart mt-2 flex justify-between items-center gap-2 w-full xl:w-[80%]">
+                                    <Link to={'/checkout'}
+                                        onClick={() => addToCart(product)}
+                                        className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
+                                        Mua Ngay
+                                    </Link>
+                                    <button
+                                        onClick={() => addToCart(product)}
+                                        className="bg-blue-500 border border-blue-500 text-white text-center w-[45%] font-bold text-sm uppercase px-6 py-3 rounded-md hover:bg-white hover:text-gray-500 hover:border hover:border-gray-400 transition-colors duration-300 ease-in-out">
+                                        Thêm vào giỏ hàng
+                                    </button>
+                                    <RiHeartLine
+                                        className=' w-[10%] text-[#df494a] text-4xl cursor-pointer hover:text-[#df494a] transition-colors duration-300 ease-in-out'
+                                    />
+                                </div>
+                                :
+                                <div className='block pt-6 pb-4'>
+                                    <span className='w-full text-xl font-bold text-red-600 text-center uppercase'>Hết hàng tạm thời</span>
+                                </div>
+                        }
                         <div className="select-store">
                             <div className="select-store__title mt-4">
                                 <h3 className="text-[15px] font-medium uppercase">Các cửa hàng của MyChildren</h3>

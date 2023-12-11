@@ -156,3 +156,8 @@ button.react-multiple-carousel__arrow {
   -moz-user-select: none;
   -ms-user-select: none;
 }
+
+.ant-popconfirm-buttons button.ant-btn-primary {
+  background-color: #1677ff;
+  border-color: #1677ff;
+}

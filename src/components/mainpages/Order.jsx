@@ -84,8 +84,22 @@ export const Order = () => {
         {
             key: '8',
             label: 'Trạng thái',
-            children: <Badge status="processing" text={order?.status} />,
             span: 3,
+            children: <>
+                {
+                    order?.status === 'pending' ?
+                        <Badge status="default" text="Chờ xác nhận" /> :
+                        order?.status === 'processing' ?
+                            <Badge status="processing" text="Đang xử lý" /> :
+                            order?.status === 'shipping' ?
+                                <Badge status="warning" text="Đang giao hàng" /> :
+                                order?.status === 'delivered' ?
+                                    <Badge status="success" text="Đã giao hàng" /> :
+                                    order?.status === 'cancelled' ?
+                                        <Badge status="error" text="Đã hủy" /> :
+                                        <Badge status="processing" text="Không xác định" />
+                }
+            </>,
         },
         {
             key: '9',
@@ -95,7 +109,7 @@ export const Order = () => {
         {
             key: '10',
             label: 'Giảm giá',
-            children: VND.format(Number(order?.total_amount - order?.final_total)),
+            children: VND.format(Number((order?.total_amount + order?.shipping) - order?.final_total)),
         },
         {
             key: '11',

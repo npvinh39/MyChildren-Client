@@ -19,8 +19,8 @@ export const apiOrder = {
         return response;
     },
 
-    getOrderByUser: async (user) => {
-        const url = `/order/user/${user}`;
+    getOrderByUser: async (params) => {
+        const url = `/order/user/${params.user}?page=${params && params.currentPage}&limit=${params && params.pageSize}&${params && params.regex}`;
         const response = await axiosClient.get(url);
         return response;
     },
@@ -29,6 +29,12 @@ export const apiOrder = {
         const url = `/order/add/${params.id}`;
         console.log("params", params);
         const response = await axiosClient.post(url, params);
+        return response;
+    },
+
+    cancelOrder: async (params) => {
+        const url = `/order/cancel/${params.id}`;
+        const response = await axiosClient.patch(url, params);
         return response;
     },
 

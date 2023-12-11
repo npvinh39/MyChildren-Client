@@ -145,114 +145,7 @@ export const AddressProfile = () => {
                                     <div className="flex justify-between items-center">
                                         <div className="font-semibold">Sổ địa chỉ</div>
                                         <Button type="primary" onClick={showModal} className="rounded bg-blue-500">Thêm địa chỉ</Button>
-                                        <Modal title="Thêm địa chỉ" open={isModalOpen} onOk={handleOk} onCancel={handleCancel} footer={null} >
-                                            <Form
-                                                form={form}
-                                                name="addAddress"
-                                                layout='vertical'
-                                                onFinish={handleOk}
-                                            >
-                                                <div
-                                                    className='flex items-center'
-                                                >
 
-                                                    <Form.Item
-                                                        label="Tỉnh/Thành"
-                                                        name='province'
-                                                        className='w-1/2 mr-2'
-                                                        rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành!' }]}
-                                                    >
-                                                        <Select
-                                                            name='province'
-                                                            onChange={handleProvinceChange}
-                                                            placeholder='Tỉnh/Thành'
-                                                            value={selectedProvince || ''}
-                                                            options={provinces.map((province) => (
-                                                                {
-                                                                    key: province.code,
-                                                                    label: province.name,
-                                                                    value: province.name
-                                                                }
-                                                            ))}
-                                                        />
-                                                    </Form.Item>
-                                                    <Form.Item
-                                                        label="Quận/Huyện"
-                                                        name='district'
-                                                        className='w-1/2'
-                                                        rules={[{ required: true, message: 'Vui lòng chọn quận/huyện!' }]}
-                                                    >
-                                                        <Select
-                                                            name='district'
-                                                            onChange={handleDistrictChange}
-                                                            placeholder='Quận/Huyện'
-                                                            value={selectedDistrict || ''}
-                                                            options={selectedProvince &&
-                                                                provinces
-                                                                    .find((province) => province.name === selectedProvince)?.districts.map((district) => (
-                                                                        {
-                                                                            key: district.code,
-                                                                            label: district.name,
-                                                                            value: district.name
-                                                                        }
-                                                                    ))
-                                                            }
-                                                        />
-                                                    </Form.Item>
-                                                </div>
-                                                <div
-                                                    className='flex items-center'
-                                                >
-                                                    <Form.Item
-                                                        label="Phường/Xã"
-                                                        name='ward'
-                                                        className='w-1/2 mr-2'
-                                                        rules={[{ required: true, message: 'Vui lòng chọn phường/xã!' }]}
-                                                    >
-                                                        <Select
-                                                            name='ward'
-                                                            onChange={handleWardChange}
-                                                            placeholder='Phường/Xã'
-                                                            value={ward}
-                                                            options={selectedDistrict &&
-                                                                provinces
-                                                                    .reduce((prev, province) => prev.concat(province.districts), [])
-                                                                    .find((district) => district.name === selectedDistrict)?.wards.map((ward) => (
-                                                                        {
-                                                                            key: ward.code,
-                                                                            label: ward.name,
-                                                                            value: ward.name
-                                                                        }
-                                                                    ))}
-                                                        />
-                                                    </Form.Item>
-                                                    <Form.Item
-                                                        label="Số nhà, tên đường"
-                                                        name='number_street'
-                                                        className='w-1/2'
-                                                        rules={[{ required: true, message: 'Vui lòng nhập số nhà, tên đường!' }]}
-                                                    >
-                                                        <Input
-                                                            type="text"
-                                                            value={street}
-                                                            onChange={handleStreetChange}
-                                                            placeholder='Số nhà, tên đường'
-                                                        />
-                                                    </Form.Item>
-
-                                                </div>
-                                                {/* submit and cancel button */}
-                                                <div className="flex justify-center items-center mt-4">
-                                                    <Button onClick={handleCancel} className="mr-4">Hủy</Button>
-                                                    {
-                                                        <Button type="primary" htmlType="submit" loading={loading} className="bg-blue-500">
-                                                            {addressId ? "Sửa" : "Thêm"}
-                                                        </Button>
-                                                    }
-                                                </div>
-                                            </Form>
-
-                                        </Modal>
                                     </div>
                                     <div className="mt-4">
                                         <div className="grid grid-cols-3 gap-4">
@@ -286,15 +179,121 @@ export const AddressProfile = () => {
                                 <div>
                                     <div className="flex justify-between items-center">
                                         <div className="font-semibold">Sổ địa chỉ</div>
-                                        <Link to="/profile/address/add" className="text-sm text-blue-600 hover:underline">
-                                            <Button type="primary" className="rounded bg-blue-500">Thêm địa chỉ</Button>
-                                        </Link>
+                                        <Button type="primary" onClick={showModal} className="rounded bg-blue-500">Thêm địa chỉ</Button>
                                     </div>
                                     <div className="mt-4">
                                         <Empty description="Bạn chưa có địa chỉ nào" />
                                     </div>
                                 </div>
                     }
+                    <Modal title="Thêm địa chỉ" open={isModalOpen} onOk={handleOk} onCancel={handleCancel} footer={null} >
+                        <Form
+                            form={form}
+                            name="addAddress"
+                            layout='vertical'
+                            onFinish={handleOk}
+                        >
+                            <div
+                                className='flex items-center'
+                            >
+
+                                <Form.Item
+                                    label="Tỉnh/Thành"
+                                    name='province'
+                                    className='w-1/2 mr-2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn tỉnh/thành!' }]}
+                                >
+                                    <Select
+                                        name='province'
+                                        onChange={handleProvinceChange}
+                                        placeholder='Tỉnh/Thành'
+                                        value={selectedProvince || ''}
+                                        options={provinces.map((province) => (
+                                            {
+                                                key: province.code,
+                                                label: province.name,
+                                                value: province.name
+                                            }
+                                        ))}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Quận/Huyện"
+                                    name='district'
+                                    className='w-1/2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn quận/huyện!' }]}
+                                >
+                                    <Select
+                                        name='district'
+                                        onChange={handleDistrictChange}
+                                        placeholder='Quận/Huyện'
+                                        value={selectedDistrict || ''}
+                                        options={selectedProvince &&
+                                            provinces
+                                                .find((province) => province.name === selectedProvince)?.districts.map((district) => (
+                                                    {
+                                                        key: district.code,
+                                                        label: district.name,
+                                                        value: district.name
+                                                    }
+                                                ))
+                                        }
+                                    />
+                                </Form.Item>
+                            </div>
+                            <div
+                                className='flex items-center'
+                            >
+                                <Form.Item
+                                    label="Phường/Xã"
+                                    name='ward'
+                                    className='w-1/2 mr-2'
+                                    rules={[{ required: true, message: 'Vui lòng chọn phường/xã!' }]}
+                                >
+                                    <Select
+                                        name='ward'
+                                        onChange={handleWardChange}
+                                        placeholder='Phường/Xã'
+                                        value={ward}
+                                        options={selectedDistrict &&
+                                            provinces
+                                                .reduce((prev, province) => prev.concat(province.districts), [])
+                                                .find((district) => district.name === selectedDistrict)?.wards.map((ward) => (
+                                                    {
+                                                        key: ward.code,
+                                                        label: ward.name,
+                                                        value: ward.name
+                                                    }
+                                                ))}
+                                    />
+                                </Form.Item>
+                                <Form.Item
+                                    label="Số nhà, tên đường"
+                                    name='number_street'
+                                    className='w-1/2'
+                                    rules={[{ required: true, message: 'Vui lòng nhập số nhà, tên đường!' }]}
+                                >
+                                    <Input
+                                        type="text"
+                                        value={street}
+                                        onChange={handleStreetChange}
+                                        placeholder='Số nhà, tên đường'
+                                    />
+                                </Form.Item>
+
+                            </div>
+                            {/* submit and cancel button */}
+                            <div className="flex justify-center items-center mt-4">
+                                <Button onClick={handleCancel} className="mr-4">Hủy</Button>
+                                {
+                                    <Button type="primary" htmlType="submit" loading={loading} className="bg-blue-500">
+                                        {addressId ? "Sửa" : "Thêm"}
+                                    </Button>
+                                }
+                            </div>
+                        </Form>
+
+                    </Modal>
                 </div>
             </div>
         </div >

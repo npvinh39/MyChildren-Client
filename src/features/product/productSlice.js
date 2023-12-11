@@ -29,7 +29,7 @@ export const productSlice = createSlice({
         currentPage: 1,
         pageSize: 12,
         totalPages: 0,
-        sort: null,
+        sort: '',
         pageSizeCategories: 12,
         currentPageCategories: 1,
         totalPagesCategories: 0,
@@ -40,6 +40,9 @@ export const productSlice = createSlice({
         setProducts: (state, action) => {
             state.products = action.payload;
         },
+        resetCurrentPageCategories: (state, action) => {
+            state.currentPageCategories = 1;
+        }
     },
     extraReducers: {
         [fetchProducts.pending]: (state) => {
@@ -118,7 +121,6 @@ export const productSlice = createSlice({
         [fetchProductsByCategory.fulfilled]: (state, action) => {
             state.loading = false;
             state.productsByCategory = action.payload.products;
-            console.log(action)
             state.totalPagesCategories = action.payload.totalPages;
             state.currentPageCategories = action.meta.arg.currentPage;
             state.pageSizeCategories = action.meta.arg.pageSize;
@@ -179,6 +181,6 @@ export const productSlice = createSlice({
     },
 });
 
-export const { products } = productSlice.actions;
+export const { products, resetCurrentPageCategories } = productSlice.actions;
 
 export default productSlice.reducer;

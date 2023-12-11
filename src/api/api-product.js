@@ -17,7 +17,7 @@ export const apiProduct = {
     },
 
     getByCategory: (params) => {
-        const url = `/products/category/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}`;
+        const url = `/products/category/${params.id}?page=${params.currentPage}&limit=${params.pageSize}&sort=${params.sort}&price[gte]=${params.priceGte}&price[lte]=${params.priceLte}`;
         return axiosClient.get(url);
     },
 
